@@ -1,0 +1,103 @@
+//************************************************
+// Jong-un objects list file
+//
+// !--- Coution ---!
+//     These objects are reserved by Lunar Magic.
+//     Therefore, it may become unavailable.
+//     for the future.
+//       - [Normal]      : 29 - 2c
+//       - [Castle]      : 29 - 2c
+//       - [Rope]        : 29 - 2c
+//       - [Underground] : 29 - 2c
+//       - [GhostHouse]  : 29 - 2c
+//************************************************
+
+// Normal level --------------
+[Normal]
+29	
+2a	
+2b	
+2c	
+2e	
+2f	
+
+// Castle level --------------
+[Castle]
+29	
+2a	
+2b	
+2c	
+2e	
+2f	
+30	
+31	
+32	
+33	
+
+// Rope level ----------------
+[Rope]
+29	
+2a	
+2b	
+2c	
+2e	
+2f	
+30	
+31	
+
+// Underground level ---------
+[Underground]
+29	
+2a	
+2b	
+2c	
+2e	
+2f	
+30	
+31	
+32	
+33	
+
+// GhostHouse level ----------
+[GhostHouse]
+29	
+2a	
+2b	
+2c	
+
+// Extend object -------------
+[ExtendObject]
+//--- 02 - 0f
+//    If LunarMagic detects these objects, a fatal error occurs in LunarMagic.
+//    These objects are unavailable.
+02	
+// ...
+0f	
+
+//--- 98 - ff
+98	swblk/InvGreenBlock.asm
+99	swblk/InvYellowBlock.asm
+9a	swblk/InvBlueBlock.asm
+9b	swblk/InvRedBlock.asm
+9c	ExMidwaySpawn.asm
+9d	CementGate.asm
+9e	DCDoor5Coins.asm
+9f	DCDoor1Coin.asm
+a0	3upMoonDC5.asm
+//-----
+a1	MidCmWall.asm
+a2	CementWall.asm		// Duplicate test
+a3	CementWall.asm		//
+//-----
+//c0	tests/RomMapTest.asm	// RomMap detect test
+//c1	tests/DefineTest.asm	// Define option test
+// ...
+ff	
+
+// Object 2D (LM Ext object) -
+[Object2D]
+00	pipe/VertScrPipe.asm
+01	AnyCondExecuter.asm
+// ...
+ff	
+
