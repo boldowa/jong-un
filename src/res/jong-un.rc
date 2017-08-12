@@ -28,7 +28,7 @@ VS_VERSION_INFO VERSIONINFO
 		BLOCK "040904b0"
 		{
 			VALUE "CompanyName",		"N.K. Entertainment\0"
-			VALUE "FileDescription",	"SMW object tool\0"
+			VALUE "FileDescription",	"SMW Object Insertion Tool\0"
 			VALUE "FileVersion",		ResV(FileVersion)
 			VALUE "InternalVersion",	"null\0"
 			VALUE "OriginalFileName",	"jong-un.exe\0"
