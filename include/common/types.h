@@ -41,12 +41,14 @@
 #        define true !false
 #      endif
 #    endif
-     /* MSVC funcs */
-#    define strncasecmp _strnicmp
-#    define strcasecmp _stricmp
-#    define fopen(fn,m) _fopen_b(fn,m,__func__)
-     FILE* _fopen_b(const char*, const char*, const char*);
+#  else
+#    include <stdbool.h>
 #  endif
+   /* MSVC funcs */
+#  define strncasecmp _strnicmp
+#  define strcasecmp _stricmp
+#  define fopen(fn,m) _fopen_b(fn,m,__func__)
+   FILE* _fopen_b(const char*, const char*, const char*);
 
    /* type stdint */
    typedef unsigned char		uint8_t;
@@ -67,6 +69,7 @@
      /*--- C++ ---*/
 #    include <cstdint>
 #  endif
+#  include <strings.h>
 #endif
 
 /* define type */

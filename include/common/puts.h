@@ -3,6 +3,8 @@
  */
 #pragma once
 
+#include "types.h"
+
 /**
  * It requires this var.
  */

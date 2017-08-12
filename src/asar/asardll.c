@@ -1,6 +1,4 @@
-#ifndef NULL
 #define NULL 0
-#endif
 #ifdef _WIN32
 	#include <windows.h>
 	#define getlib() LoadLibrary("asar.dll")
@@ -9,23 +7,26 @@
 #else
 	#include <dlfcn.h>
 	#include <stdio.h>
+
 	#ifdef __APPLE__
 		#define EXTENSION ".dylib"
 	#else
 		#define EXTENSION ".so"
 	#endif
-	/*inline*/ void * getlib()
+
+	inline static void * getlib()
 	{
-		/* char libname[256]; */
 		const char * names[]={"./libasar"EXTENSION, "libasar", NULL};
 		for (int i=0;names[i];i++)
 		{
 			void * rval=dlopen(names[i], RTLD_LAZY);
-			const char*e=dlerror();if(e)puts(e);
+			const char*e=dlerror();
+			if(e)puts(e);
 			if (rval) return rval;
 		}
 		return NULL;
 	}
+
 	#define loadraw(name, target) *(void **)(&target)=dlsym(asardll, name); require(target)
 	#define closelib(var) dlclose(var)
 #endif
@@ -60,6 +61,8 @@ bool asar_init()
 	load(getdefine);
 	load(getalldefines);
 	load(math);
+	load(getwrittenblocks);
+	load(getmapper);
 	if (asar_apiversion()<expectedapiversion || (asar_apiversion()/100)>(expectedapiversion/100)) return false;
 	require(asar_i_init());
 	return true;

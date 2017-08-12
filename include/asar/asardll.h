@@ -3,9 +3,9 @@
 #define asarfunc extern
 #endif
 
-#define expectedapiversion 200
+#define expectedapiversion 300
 
-#include "types.h"
+#include <stdbool.h>
 
 //These structures are returned from various functions.
 struct errordata {
@@ -26,6 +26,24 @@ struct labeldata {
 struct definedata {
 	const char * name;
 	const char * contents;
+};
+
+struct writtenblockdata {
+	int pcoffset;
+	int snesoffset;
+	int numbytes;
+};
+
+enum mappertype {
+	invalid_mapper,
+	lorom,
+	hirom,
+	sa1rom,
+	bigsa1rom,
+	sfxrom,
+	exlorom,
+	exhirom,
+	norom
 };
 
 #ifdef __cplusplus
@@ -104,6 +122,12 @@ asarfunc const char * (*asar_resolvedefines)(const char * data, bool learnnew);
 // not affect asar_geterrors.
 asarfunc double (*asar_math)(const char * math, const char ** error);
 
+//Get a list of all the blocks written to the ROM by calls such as asar_patch().
+asarfunc const struct writtenblockdata * (*asar_getwrittenblocks)(int * count);
+
+//Get the mapper currently used by Asar
+asarfunc enum mappertype (*asar_getmapper)();
+
 #ifdef __cplusplus
-} /* extern "C" */
+	}
 #endif

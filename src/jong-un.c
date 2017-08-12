@@ -406,7 +406,9 @@ static bool AddDefine(void* dst, const char* cmdline)
 		return false;
 	}
 
-	defineList = (List*)dst;
+	assert(NULL != dst);
+
+	defineList = *((List**)dst);
 
 	/* parse define */
 	switch(FunexMatch(cmdline, funex))
@@ -1317,7 +1319,7 @@ static bool WriteRom(const char *rompath, const OptionValue* opt, bool (*proc)(R
 }
 
 /* global options ---------------------------------*/
-bool vdebug		= false;	/* @breif option value for puts.h */
+bool vdebug		= false;	/* @brief option value for puts.h */
 
 /**
  * @brief main
@@ -1396,18 +1398,26 @@ int main(int argc, char** argv)
 	{
 		ShowUsage(argv[0], options);
 	}
-	if((true == showVersion) || (true == showHelp))
-	{
-		asar_close();
-		delete_List(&defineList);
-		return 0;
-	}
+
+	// RPG Hacker: Why do we need this specific exit case?
+	// It's very possible that a user wants to display help/version
+	// And apply a patch at the same time.
+	//if((true == showVersion) || (true == showHelp))
+	//{
+	//	asar_close();
+	//	delete_List(&defineList);
+	//	return 0;
+	//}
 
 	/* Show usage message */
 	if(argc != 2)
 	{
-		printf("Usage: %s [options] <rom>\n", argv[0]);
-		printf("Please try '-?' or '--help' option, and you can get more information.\n");
+		// RPG Hacker: Instead, let's only skip this printf if any of the above cases is true.
+		if ((false == showVersion) && (false == showHelp))
+		{
+			printf("Usage: %s [options] <rom>\n", argv[0]);
+			printf("Please try '-?' or '--help' option, and you can get more information.\n");
+		}
 		asar_close();
 		delete_List(&defineList);
 		return 0;
