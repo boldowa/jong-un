@@ -1399,20 +1399,9 @@ int main(int argc, char** argv)
 		ShowUsage(argv[0], options);
 	}
 
-	// RPG Hacker: Why do we need this specific exit case?
-	// It's very possible that a user wants to display help/version
-	// And apply a patch at the same time.
-	//if((true == showVersion) || (true == showHelp))
-	//{
-	//	asar_close();
-	//	delete_List(&defineList);
-	//	return 0;
-	//}
-
 	/* Show usage message */
 	if(argc != 2)
 	{
-		// RPG Hacker: Instead, let's only skip this printf if any of the above cases is true.
 		if ((false == showVersion) && (false == showHelp))
 		{
 			printf("Usage: %s [options] <rom>\n", argv[0]);
