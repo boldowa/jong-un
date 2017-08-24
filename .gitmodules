@@ -1,0 +1,3 @@
+[submodule "bolib"]
+	path = bolib
+	url = git@github.com:boldowa/bolib
