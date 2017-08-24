@@ -1,6 +1,4 @@
-#ifndef NULL
 #define NULL 0
-#endif
 #ifdef _WIN32
 	#include <windows.h>
 	#define getlib() LoadLibrary("asar.dll")
@@ -15,7 +13,8 @@
 	#else
 		#define EXTENSION ".so"
 	#endif
-	/*inline*/ void * getlib()
+
+	inline static void * getlib()
 	{
 		const char * names[]={"./libasar"EXTENSION, "libasar", NULL};
 		for (int i=0;names[i];i++)

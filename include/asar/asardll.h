@@ -5,7 +5,7 @@
 
 #define expectedapiversion 300
 
-#include "types.h"
+#include <stdbool.h>
 
 //These structures are returned from various functions.
 struct errordata {
@@ -129,5 +129,5 @@ asarfunc const struct writtenblockdata * (*asar_getwrittenblocks)(int * count);
 asarfunc enum mappertype (*asar_getmapper)();
 
 #ifdef __cplusplus
-} /* extern "C" */
+	}
 #endif

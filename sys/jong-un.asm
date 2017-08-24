@@ -4,7 +4,7 @@
 ;-----------------------------------------------------------
 
 !VER_MAJ = $01
-!VER_MIN = $10
+!VER_MIN = $11
 
 !ExecutePtrL		= $0086fa
 !EmptyObjectPtr		= $0db3e3

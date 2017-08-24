@@ -12,5 +12,5 @@
 #define AppVersion		1.21f
 #define ResVersion		1,2,1,0
 #define FileVersion		5
-#define CodeVersion		0x0110
+#define CodeVersion		0x0111
 
