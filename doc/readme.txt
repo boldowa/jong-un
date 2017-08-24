@@ -1,10 +1,10 @@
 +----------------------------------------------------------+
-| Jong-un                                                  |
+| Jong-Un (Object Insertion Tool)                          |
 | -------                                                  |
 |                  ... he is very fond of standing out ... |
 |                                                          |
 |                                                          |
-|   - ver. 1.20                                            |
+|   - ver. 1.21                                            |
 |                                                          |
 |   Changelog)                                             |
 |                                                          |
@@ -22,6 +22,15 @@
 |                                                          |
 |     06-05-2017 [v1.20] : Change program internal design  |
 |                          and some mammap issue fix       |
+|                                                          |
+|     08-06-2017 [v1.21] : (RPG Hacker)                    |
+|                          + Updated to newest Asar        |
+|                            version                       |
+|                          + Fixed a crash when trying to  |
+|                            set a define with Asar        |
+|                          + Fixed SA-1 support, should    |
+|                            now actually work             |
+|                          + Other minor code fixes        |
 |                                                          |
 +----------------------------------------------------------+
 
@@ -80,9 +89,9 @@
   +-- asar_licenses                    ... Asar's license files.
   |
   +-- list.txt                         ... Object list.
-  +-- libasar.so or asar.dll           ... library for asm patch.
-  +-- jong-un or jong-un.exe           ... main program. (compiled with mingw)
-  +-- jong-un_msvc                     ... compiled with visual c++ 2008.
+  +-- libasar.so or asar.dll           ... library for asm patch, asar v1.5.0
+  +-- jong-un                          ... main program. (compiled with gcc)
+  +-- jong-un.exe                      ... compiled with visual studio 2015.
   +-- readme.txt                       ... It's file that just you are reading.
   +-- LICENSE                          ... license file
   |
