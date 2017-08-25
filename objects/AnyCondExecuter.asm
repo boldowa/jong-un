@@ -38,7 +38,7 @@ AnyCondExecMain:
 	jsl	SMW_ExecutePtr	;*  branch
 
 	dw	MusicCondChanger	; - 0*
-	dw	EmptyHandler		;dw	PaletteCondChanger	; - 1*
+	dw	PaletteCondChanger	; - 1*
 	dw	GFXIndexCondChanger	; - 2*
 	dw	EmptyHandler		; - 3*
 	dw	EmptyHandler		; - 4*
@@ -110,11 +110,11 @@ EmptyHandler:
 	rts
 
 
-	incsrc	"objects/cond/MusicCondChanger.asm"
-	;incsrc	"objects/cond/PaletteCondChanger.asm"		; RPG Hacker: So where exactly is this file?
-	incsrc	"objects/cond/GFXIndexCondChanger.asm"
-	;incsrc "objects/cond/foo.asm"
-	;incsrc "objects/cond/bar.asm"
+	incsrc	"cond/MusicCondChanger.asm"
+	incsrc	"cond/PaletteCondChanger.asm"
+	incsrc	"cond/GFXIndexCondChanger.asm"
+	;incsrc "cond/foo.asm"
+	;incsrc "cond/bar.asm"
 	;            :
 
 

@@ -1,41 +1,51 @@
 @include
 ;-------------------------------------------------
-; GFX Index condition changer
+; Palette condition changer
 ;
 ;   XY pos      [$57] ... cond option 1 (X pos)
 ;
-;   XY size     [$59] ... Not used
-;
-;   Ext value   [$58] ... GFX Index
+;   XY size     [$59] ... Palette config 1
 ;                           (%ffffssss)
-;                           ... ffff = FG/BG
+;                           ... ffff = FG
 ;                           ... ssss = Sprite
+;
+;   Ext value   [$58] ... Palette config 2
+;                           (%ccccbbbb)
+;                           ... cccc = Background Color
+;                           ... bbbb = BG
 ;-------------------------------------------------
 
 GFXIndexCondChanger:
-	jsr	GFXIndexCondChk
+	jsr	PaletteCondChk
 	bcc	+
+	lda.b	$59		;\
+	lsr	a		; |
+	lsr	a		; | FG
+	lsr	a		; |
+	lsr	a		; |
+	sta.w	$192d		;/
+	lda.b	$59		;\
+	and.b	#$0f		; | Sprite
+	sta.w	$192e		;/
 	lda.b	$58		;\
-	and.b	#$0f		; | Set sprite tile set
-	sta.w	$192b		;/
+	lsr	a		; |
+	lsr	a		; | Background Color
+	lsr	a		; |
+	lsr	a		; |
+	sta.w	$192f		;/
 	lda.b	$58		;\
-	lsr	#4		; | Set FG/BG tile set
-	sta.w	$1931		; |
-	sta.w	$1932		;/
-	phk			;\
-	per	$0006		; | Call graphic load routine
-	pea	$8124		; |
-	jml	$0581fb		;/
+	and.b	#$0f		; | BG
+	sta.w	$1930		;/
 +	rts
 
-GFXIndexCondChk:
+PaletteCondChk:
 	tya				;\  Get block X pos from Y-register.
 	tax				;/
 	jsl	SMW_ExecutePtr
 
 	dw	isMidwayPassed		; - *0
-	dw	isMidwayPassedInv	; - *1
-	dw	isLifeLastOne		; - *2
+	dw	isLifeLastOne		; - *1
+	dw	EmptyHandler		; - *2
 	dw	EmptyHandler		; - *3
 	dw	EmptyHandler		; - *4
 	dw	EmptyHandler		; - *5
