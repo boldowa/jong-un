@@ -44,10 +44,10 @@ if(UNIX OR MINGW)
 	set(DEFINE_PREFIX "-D")
 
 	## set C Release compile flags
-	set(CMAKE_C_FLAGS_RELEASE "-DUNIX -Wall -Wconversion -O2 -ffunction-sections -fdata-sections")
+        set(CMAKE_C_FLAGS_RELEASE "-DUNIX -Wall -ansi -Wconversion -O2 -ffunction-sections -fdata-sections")
 
 	## set C Debug compile option
-	set(CMAKE_C_FLAGS_DEBUG "-DUNIX -Wall -Wconversion -Werror -O0 -g")
+	set(CMAKE_C_FLAGS_DEBUG "-DUNIX -Wall -ansi -Wconversion -Werror -O0 -g")
 
 	## set linker link flag
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s -Wl,--gc-sections")

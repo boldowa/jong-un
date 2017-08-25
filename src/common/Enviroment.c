@@ -1,10 +1,13 @@
 #include "types.h"
 #include <string.h>
 #ifdef WIN32
-  #include <windows.h>
+#  include <windows.h>
 #endif
 #ifdef UNIX
-  #include <unistd.h>
+#  ifndef __USE_XOPEN2K
+#    define __USE_XOPEN2K
+#  endif
+#  include <unistd.h>
 #endif
 #include "FilePath.h"
 #include "Enviroment.h"

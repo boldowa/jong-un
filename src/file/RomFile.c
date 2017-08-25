@@ -333,8 +333,10 @@ static uint32 LoRom_Pc2Snes(RomFile* self, const uint32 pca)
 
 /*===== SA-1(LoRom) =====*/
 
-// RPG Hacker: New SA-1 mapping functions, borrowed from Asar, since original
-// functions didn't work correctly. See below for original functions.
+/**
+ * RPG Hacker: New SA-1 mapping functions, borrowed from Asar, since original
+ * functions didn't work correctly. See below for original functions.
+ */
 static const int sa1banks[8] = { 0 << 20, 1 << 20, -1, -1, 2 << 20, 3 << 20, -1, -1 };
 
 static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
@@ -351,133 +353,137 @@ static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
 }
 static uint32 SA1_Pc2Snes(RomFile* self, const uint32 pca)
 {
-	for (int i = 0;i < 8;i++)
+	{int i; for (i = 0;i < 8;i++)
 	{
 		if (sa1banks[i] == (pca & 0x600000)) { return 0x008000 | (i << 21) | ((pca&((i < 4) ? 0x0F8000 : 0x1F8000)) << 1) | (pca & 0x7FFF); }
-	}
+	}}
 	return ROMADDRESS_NULL;
 }
 
-// RPG Hacker: Original SA-1 mapping functions.
-// Left here for reference.
+/**
+ * RPG Hacker: Original SA-1 mapping functions.
+ * Left here for reference.
+ */
 
-//static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
-//{
-//	uint32 pca;
-//	int slot;
-//	uint8 bnk = (uint8)(sna >> 16);
-//	bool useHiRomMap;
-//
-//	if((0x00 <= bnk) && (0x20 > bnk))
-//	{
-//		slot = 0;
-//		useHiRomMap = false;
-//	}
-//	else if((0x20 <= bnk) && (0x40 > bnk))
-//	{
-//		slot = 1;
-//		useHiRomMap = false;
-//	}
-//	else if((0x80 <= bnk) && (0xa0 > bnk))
-//	{
-//		slot = 2;
-//		useHiRomMap = false;
-//	}
-//	else if((0xa0 <= bnk) && (0xc0 > bnk))
-//	{
-//		slot = 3;
-//		useHiRomMap = false;
-//	}
-//	else if((0xc0 <= bnk) && (0xcf >= bnk))
-//	{
-//		slot = 0;
-//		useHiRomMap = true;
-//	}
-//	else if((0xd0 <= bnk) && (0xdf >= bnk))
-//	{
-//		slot = 1;
-//		useHiRomMap = true;
-//	}
-//	else if((0xe0 <= bnk) && (0xef >= bnk))
-//	{
-//		slot = 2;
-//		useHiRomMap = true;
-//	}
-//	else if((0xf0 <= bnk) && (0xff >= bnk))
-//	{
-//		slot = 3;
-//		useHiRomMap = true;
-//	}
-//	else
-//	{
-//		return ROMADDRESS_NULL;
-//	}
-//
-//	if(useHiRomMap)
-//	{
-//		pca = (uint32)((((self->pro->sa1adrinf.slots[slot])+((uint32)bnk&0x0f)) << 16) + ((uint32)sna & 0xffff));
-//	}
-//	else
-//	{
-//		pca = (uint32)((((self->pro->sa1adrinf.slots[slot])+ ((uint32)bnk&0x1f)) << 16) + ((uint32)sna & 0x7fff));
-//	}
-//
-//	if(self->pro->size <= (long)pca) return ROMADDRESS_NULL;
-//	return pca;
-//}
-//
-//static uint32 SA1_Pc2Snes(RomFile* self, const uint32 pca)
-//{
-//	int i;
-//	uint8 bnk = (uint8)(pca>>16);
-//	uint32 add = 0;
-//
-//	if(self->pro->size <= (long)pca) return ROMADDRESS_NULL;
-//	if(0x800000 <= pca) return ROMADDRESS_NULL;
-//
-//	/* HiRom map */
-//	if(self->pro->sa1adrinf.useHiRomMap)
-//	{
-//		for(i=0; i<4; i++)
-//		{
-//			if(self->pro->sa1adrinf.slots[i] <= bnk
-//					&& self->pro->sa1adrinf.slots[i] + 16 > bnk)
-//			{
-//				break;
-//			}
-//		}
-//		if(4 <= i) return ROMADDRESS_NULL;
-//		return (((((self->pro->sa1adrinf.slots[i] & 0x7f) + ((uint32)bnk & 0x0f)) << 16) + (((uint32)pca&0xffff))) | 0xc00000);
-//	}
-//
-//	/* LoRom map */
-//	for(i=0; i<4; i++)
-//	{
-//		if(self->pro->sa1adrinf.slots[i] <= bnk
-//		&& self->pro->sa1adrinf.slots[i] + 16 > bnk)
-//		{
-//			break;
-//		}
-//	}
-//	switch(i) /* switch slot */
-//	{
-//		case 0:
-//			add = 0x00;
-//			break;
-//		case 1:
-//			add = 0x20;
-//			break;
-//		case 2:
-//			add = 0x80;
-//			break;
-//		case 3:
-//			add = 0xa0;
-//			break;
-//		default:
-//			return ROMADDRESS_NULL;
-//	}
-//	return (((add + ((uint32)bnk & 0x0f)) << 16) + (((uint32)pca&0x17fff)|0x8000));
-//}
+#if 0
+static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
+{
+	uint32 pca;
+	int slot;
+	uint8 bnk = (uint8)(sna >> 16);
+	bool useHiRomMap;
+
+	if((0x00 <= bnk) && (0x20 > bnk))
+	{
+		slot = 0;
+		useHiRomMap = false;
+	}
+	else if((0x20 <= bnk) && (0x40 > bnk))
+	{
+		slot = 1;
+		useHiRomMap = false;
+	}
+	else if((0x80 <= bnk) && (0xa0 > bnk))
+	{
+		slot = 2;
+		useHiRomMap = false;
+	}
+	else if((0xa0 <= bnk) && (0xc0 > bnk))
+	{
+		slot = 3;
+		useHiRomMap = false;
+	}
+	else if((0xc0 <= bnk) && (0xcf >= bnk))
+	{
+		slot = 0;
+		useHiRomMap = true;
+	}
+	else if((0xd0 <= bnk) && (0xdf >= bnk))
+	{
+		slot = 1;
+		useHiRomMap = true;
+	}
+	else if((0xe0 <= bnk) && (0xef >= bnk))
+	{
+		slot = 2;
+		useHiRomMap = true;
+	}
+	else if((0xf0 <= bnk) && (0xff >= bnk))
+	{
+		slot = 3;
+		useHiRomMap = true;
+	}
+	else
+	{
+		return ROMADDRESS_NULL;
+	}
+
+	if(useHiRomMap)
+	{
+		pca = (uint32)((((self->pro->sa1adrinf.slots[slot])+((uint32)bnk&0x0f)) << 16) + ((uint32)sna & 0xffff));
+	}
+	else
+	{
+		pca = (uint32)((((self->pro->sa1adrinf.slots[slot])+ ((uint32)bnk&0x1f)) << 16) + ((uint32)sna & 0x7fff));
+	}
+
+	if(self->pro->size <= (long)pca) return ROMADDRESS_NULL;
+	return pca;
+}
+
+static uint32 SA1_Pc2Snes(RomFile* self, const uint32 pca)
+{
+	int i;
+	uint8 bnk = (uint8)(pca>>16);
+	uint32 add = 0;
+
+	if(self->pro->size <= (long)pca) return ROMADDRESS_NULL;
+	if(0x800000 <= pca) return ROMADDRESS_NULL;
+
+	/* HiRom map */
+	if(self->pro->sa1adrinf.useHiRomMap)
+	{
+		for(i=0; i<4; i++)
+		{
+			if(self->pro->sa1adrinf.slots[i] <= bnk
+					&& self->pro->sa1adrinf.slots[i] + 16 > bnk)
+			{
+				break;
+			}
+		}
+		if(4 <= i) return ROMADDRESS_NULL;
+		return (((((self->pro->sa1adrinf.slots[i] & 0x7f) + ((uint32)bnk & 0x0f)) << 16) + (((uint32)pca&0xffff))) | 0xc00000);
+	}
+
+	/* LoRom map */
+	for(i=0; i<4; i++)
+	{
+		if(self->pro->sa1adrinf.slots[i] <= bnk
+		&& self->pro->sa1adrinf.slots[i] + 16 > bnk)
+		{
+			break;
+		}
+	}
+	switch(i) /* switch slot */
+	{
+		case 0:
+			add = 0x00;
+			break;
+		case 1:
+			add = 0x20;
+			break;
+		case 2:
+			add = 0x80;
+			break;
+		case 3:
+			add = 0xa0;
+			break;
+		default:
+			return ROMADDRESS_NULL;
+	}
+	return (((add + ((uint32)bnk & 0x0f)) << 16) + (((uint32)pca&0x17fff)|0x8000));
+}
+#endif
 
 /*===== HiRom =====*/
 static uint32 HiRom_Snes2Pc(RomFile* self, const uint32 sna)
