@@ -82,6 +82,13 @@
 
 HorzPipeExtMain:
 ;--- Initial routine -----------------------------
+
+	if !isJongunInstalled == 0
+		; Jong-un isn't installed
+		pla		;\   Remove JSR return address from stack
+		pla		;/
+	endif
+
 	; Get XY position index
 	ldy.b	$57
 

@@ -140,12 +140,6 @@ if !Uninstall == 0
 
 	freecode
 
-	if !isJongunInstalled == 0
-		; Jong-un isn't installed
-		pla		;\   Remove JSR return address from stack
-		pla		;/
-	endif
-
 	incsrc	"pipes/VertScrPipeBody.asm"
 	incsrc	"pipes/HorzScrPipeBody.asm"
 

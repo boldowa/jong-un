@@ -37,6 +37,14 @@ if !Uninstall == 0
 else
 	print	"[Uninstall mode]"
 
+	;-------------------
+	; Clean main code
+	;-------------------
+	autoclean	read3($9cb9)
+
+	;-------------------
+	; Restore hijacks
+	;-------------------
 	org $9cb8
 		jsr	$9d38
 		jmp.w	$9417
