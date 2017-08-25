@@ -1,10 +1,12 @@
 //************************************************
 // Jong-un objects list file
 //
-// !--- Coution ---!
+// !--- Caution ---!
 //     These objects are reserved by Lunar Magic.
-//     Therefore, it may become unavailable.
+//     Therefore, it may become unavailable
 //     for the future.
+//     So please use these objects at your
+//     own risk.
 //       - [Normal]      : 29 - 2c
 //       - [Castle]      : 29 - 2c
 //       - [Rope]        : 29 - 2c
@@ -68,7 +70,7 @@
 // Extend object -------------
 [ExtendObject]
 //--- 02 - 0f
-//    If LunarMagic detects these objects, a fatal error occurs in LunarMagic.
+//    If Lunar Magic detects these objects, a fatal error occurs in Lunar Magic.
 //    These objects are unavailable.
 02	
 // ...
