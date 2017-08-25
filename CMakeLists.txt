@@ -44,10 +44,10 @@ if(UNIX OR MINGW)
 	set(DEFINE_PREFIX "-D")
 
 	## set C Release compile flags
-        set(CMAKE_C_FLAGS_RELEASE "-DUNIX -Wall -ansi -Wconversion -O2 -ffunction-sections -fdata-sections")
+        set(CMAKE_C_FLAGS_RELEASE "-Wall -ansi -Wconversion -O2 -ffunction-sections -fdata-sections")
 
 	## set C Debug compile option
-	set(CMAKE_C_FLAGS_DEBUG "-DUNIX -Wall -ansi -Wconversion -Werror -O0 -g")
+	set(CMAKE_C_FLAGS_DEBUG "-Wall -ansi -Wconversion -Werror -O0 -g")
 
 	## set linker link flag
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s -Wl,--gc-sections")
@@ -62,6 +62,14 @@ if(MSVC)
 endif(MSVC)
 
 ### add common define
+if(UNIX)
+        add_common_define(CMAKE_C_FLAGS_DEBUG UNIX)
+        add_common_define(CMAKE_C_FLAGS_RELEASE UNIX)
+endif(UNIX)
+if(MINGW)
+        add_common_define(CMAKE_C_FLAGS_DEBUG WIN32)
+        add_common_define(CMAKE_C_FLAGS_RELEASE WIN32)
+endif(MINGW)
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	add_common_define(CMAKE_C_FLAGS_DEBUG DEBUG)
 else()
