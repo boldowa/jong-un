@@ -4,5 +4,5 @@
 A tool for inserting custom objects into an SMW ROM.
 
 ## 日本語
-オブジェクト拡張ツールの類です。
+SWW用のオブジェクト挿入ツールの類です。
 
