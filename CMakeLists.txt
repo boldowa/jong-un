@@ -109,7 +109,7 @@ if(UNIX)
 	set(TGTPATH "${CMAKE_CURRENT_SOURCE_DIR}/release")
 	add_custom_target(r cp jong-un ${TGTPATH}/
 		COMMAND cp ${CUR}/doc/readme.txt ${TGTPATH}/
-		COMMAND cp ${CUR}/doc/readme_jp.txt ${TGTPATH}/
+#		COMMAND cp ${CUR}/doc/readme_jp.txt ${TGTPATH}/
 		COMMAND cp ${CUR}/doc/LICENSE ${TGTPATH}/
 		COMMAND cp ${CUR}/list.txt ${TGTPATH}/
 		COMMAND rm -rf ${TGTPATH}/asar_licenses
@@ -123,6 +123,10 @@ if(UNIX)
 		COMMAND cp -r ${CUR}/toolchain ${TGTPATH}/sources/
 		COMMAND rm -rf ${TGTPATH}/sources/src/util
 		COMMAND rm -rf ${TGTPATH}/sources/include/util
+
+		COMMAND mkdir ${TGTPATH}/sources/build
+		COMMAND cp ${CUR}/build/build.sh ${TGTPATH}/sources/build/
+		COMMAND cp ${CUR}/build/build_mingw.sh ${TGTPATH}/sources/build/
 
 		COMMAND rm -rf ${TGTPATH}/sys
 		COMMAND cp -r ${CUR}/sys ${TGTPATH}/

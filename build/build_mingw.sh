@@ -3,6 +3,8 @@
 # build script
 ########################################
 
+cd `dirname "$0"`
+
 if test -r Makefile ; then
 	echo "Cleaning..."
 	make clean
