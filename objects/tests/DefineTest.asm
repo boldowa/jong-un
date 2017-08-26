@@ -2,7 +2,7 @@
 ; RomMap Detect test
 ; ------------------
 ;
-; Test source for use -D command from jong-un.
+; Test source for use -D command from unko.
 ;
 ;-------------------------------------------------
 

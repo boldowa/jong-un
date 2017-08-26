@@ -8,7 +8,7 @@ CPPUTEST_EXE_FLAGS = -c
 CPPUTEST_LDFLAGS = -L. -lasar -ldl
 
 #---- Outputs ----#
-COMPONENT_NAME = jong-un
+COMPONENT_NAME = unko
 #Set this to @ to keep the makefile quiet
 SILENCE = @
 
@@ -41,7 +41,7 @@ INCLUDE_DIRS =\
   $(CPPUTEST_HOME)/include/Platforms/Gcc\
   mocks
 
-CPPUTEST_CFLAGS = -DUNIX
+CPPUTEST_CFLAGS = -DUNIX -ansi
 CPPUTEST_WARNINGFLAGS = -Wall -Werror -Wswitch-default 
 CPPUTEST_WARNINGFLAGS += -Wconversion -Wswitch-enum 
 

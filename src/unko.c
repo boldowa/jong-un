@@ -1,6 +1,6 @@
 /**
- * jong-un.c
- *   - Object insert tool main src
+ * unko.c
+ *   - Object insertion tool main src
  */
 
 #include "common/types.h"
@@ -19,17 +19,17 @@
 #include "file/RomFile.h"
 #include "file/TextFile.h"
 #include "asar/asardll.h"
-#include "jong-un/version.h"
-#include "jong-un/Signature.h"
-#include "jong-un/ParseList.h"
-#include "jong-un/Objects.h"
-#include "jong-un/Libraries.h"
-#include "jong-un/Asarctl.h"
+#include "unko/version.h"
+#include "unko/Signature.h"
+#include "unko/ParseList.h"
+#include "unko/Objects.h"
+#include "unko/Libraries.h"
+#include "unko/Asarctl.h"
 
 /**
  * Asm path
  */
-#define AsmPath			"sys/jong-un.asm"
+#define AsmPath			"sys/unko.asm"
 #define SmwLibPath		"sys/smwlibs.asm"
 
 /**
@@ -534,7 +534,7 @@ static void ShowUsage(const char* pg, const OptionStruct* opt)
 	Option_Usage(opt);
 }
 
-static bool IsJongunMainData(const uint8* data, const uint32 len)
+static bool IsUnkoMainData(const uint8* data, const uint32 len)
 {
 	if(0x300 > len)
 	{
@@ -565,7 +565,7 @@ static bool IsJongunMainData(const uint8* data, const uint32 len)
 	return true;
 }
 
-static bool IsJongunLibData(const uint8* data, const uint32 len)
+static bool IsUnkoLibData(const uint8* data, const uint32 len)
 {
 	if((SigLen+5) > len)
 	{
@@ -682,7 +682,7 @@ static uint16 GetCodeVersion(RomFile* rom, const uint32 adrMain)
 	return read16(ptr);
 }
 
-static bool UninstallJongun(RomFile* rom, const uint32 adrMain)
+static bool UninstallUnko(RomFile* rom, const uint32 adrMain)
 {
 	uint16 codeVer;
 
@@ -816,7 +816,7 @@ static bool InsertAsm(RomFile* rom, const char* path, const InsertAsmInjection_t
 	return true;
 }
 
-static bool InstallJongun(RomFile* rom)
+static bool InstallUnko(RomFile* rom)
 {
 	char* asmPath;
 	bool res;
@@ -840,7 +840,7 @@ static bool UninstallLibs(RomFile* rom)
 
 	while(sa != ROMADDRESS_NULL)
 	{
-		sa = rom->RatsSearch(rom, sa, IsJongunLibData);
+		sa = rom->RatsSearch(rom, sa, IsUnkoLibData);
 		if(ROMADDRESS_NULL != sa)
 		{
 			putdebug("Uninstall lib at $%06x", sa);
@@ -1034,13 +1034,13 @@ static bool GenerateSMWLibs(RomFile* rom, List* libs, List* smwlibs)
 	return true;
 }
 
-static bool InitializeJongun(RomFile* rom)
+static bool InitializeUnko(RomFile* rom)
 {
 	uint32 adrMain;
 	uint16 codeVer;
 
 	/* Install check */
-	if(ROMADDRESS_NULL != (adrMain = rom->RatsSearch(rom, 0x108000, IsJongunMainData)))
+	if(ROMADDRESS_NULL != (adrMain = rom->RatsSearch(rom, 0x108000, IsUnkoMainData)))
 	{
 		/* uninstall library code */
 		putdebug("Uninstall libs.");
@@ -1074,12 +1074,12 @@ static bool InitializeJongun(RomFile* rom)
 			}
 			/* Version up */
 			putinfo("Version of code in rom is older than tool's one. upgrading...");
-			if(false == UninstallJongun(rom, adrMain))
+			if(false == UninstallUnko(rom, adrMain))
 			{
 				puterror("Failed to uninstall old code.");
 				return false;
 			}
-			if(false == InstallJongun(rom))
+			if(false == InstallUnko(rom))
 			{
 				puterror("Failed to upgrade.");
 				return false;
@@ -1090,7 +1090,7 @@ static bool InitializeJongun(RomFile* rom)
 	else
 	{
 		putinfo(AppName " isn't installed to this rom. Installing...");
-		if(false == InstallJongun(rom))
+		if(false == InstallUnko(rom))
 		{
 			return false;
 		}
@@ -1130,7 +1130,7 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 
 	/* Initialize */
 	putinfo("--- Rom initializing...");
-	if(false == InitializeJongun(rom))
+	if(false == InitializeUnko(rom))
 	{
 		puterror("Initialize failed.");
 		ReleaseList(&lst);
@@ -1169,7 +1169,7 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 		}
 
 		/* search main data */
-		adrMain = rom->RatsSearch(rom, 0x108000, IsJongunMainData);
+		adrMain = rom->RatsSearch(rom, 0x108000, IsUnkoMainData);
 		if(ROMADDRESS_NULL == adrMain)
 		{
 			puterror("Maincode search failed.");
@@ -1211,7 +1211,7 @@ static bool Uninstall(RomFile* rom, const OptionValue* opt)
 	uint32 adrMain;
 
 	/* search main data */
-	adrMain = rom->RatsSearch(rom, 0x108000, IsJongunMainData);
+	adrMain = rom->RatsSearch(rom, 0x108000, IsUnkoMainData);
 	if(ROMADDRESS_NULL == adrMain)
 	{
 		puterror(AppName " isn't installed.");
@@ -1221,7 +1221,7 @@ static bool Uninstall(RomFile* rom, const OptionValue* opt)
 	/* uninstall */
 	result &= UninstallLibs(rom);
 	result &= UninstallObjects(rom, adrMain);
-	result &= UninstallJongun(rom, adrMain);
+	result &= UninstallUnko(rom, adrMain);
 
 	return result;
 }

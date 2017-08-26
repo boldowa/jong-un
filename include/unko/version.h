@@ -3,8 +3,8 @@
 /**
  * Application Name
  */
-#define _AppName	Jong-un
-#define AppName		"Jong-un"
+#define _AppName	Unko
+#define AppName		"Unko"
 
 /**
  * Version

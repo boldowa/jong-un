@@ -1,5 +1,5 @@
 ;-----------------------------------------------------------
-; Jong-un
+; Unko
 ;  - object insert tool main code
 ;-----------------------------------------------------------
 
@@ -50,7 +50,7 @@ endmacro
 
 
 freecode
-;--- Jong-un codes
+;--- Unko codes
 
 ExecutePtrLC:
 	sty.b	$05
@@ -105,7 +105,7 @@ Obj2DTable:
 
 
 ;--- set code version.
-;    it's important for detect code version in Jong-un.
+;    it's important for detect code version in Unko.
 
 	db	!VER_MIN, !VER_MAJ
 

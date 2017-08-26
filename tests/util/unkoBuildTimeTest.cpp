@@ -1,13 +1,13 @@
 #include "CppUTest/TestHarness.h"
-#include "bolibBuildTime.h"
+#include "unkoBuildTime.h"
 
-TEST_GROUP(bolibBuildTime)
+TEST_GROUP(unkoBuildTime)
 {
-  bolibBuildTime* projectBuildTime;
+  unkoBuildTime* projectBuildTime;
 
   void setup()
   {
-    projectBuildTime = new bolibBuildTime();
+    projectBuildTime = new unkoBuildTime();
   }
   void teardown()
   {
@@ -15,7 +15,7 @@ TEST_GROUP(bolibBuildTime)
   }
 };
 
-TEST(bolibBuildTime, Create)
+TEST(unkoBuildTime, Create)
 {
   CHECK(0 != projectBuildTime->GetDateTime());
 }

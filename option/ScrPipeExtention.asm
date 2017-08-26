@@ -31,7 +31,7 @@ endif
 
 ;=== Macros ======================================
 
-; Jong-un install check
+; Unko install check
 !ExecutePtrL		= $0086fa
 macro ExecutePtrChk(v)
 	!<v> = 0
@@ -124,7 +124,7 @@ endmacro
 if !Uninstall == 0
 	print	"[Install mode]"
 
-	%ExecutePtrChk(isJongunInstalled)
+	%ExecutePtrChk(isUnkoInstalled)
 
 	%ObjectHijack(!NormalObj0F, VertPipeExtMain, 1)
 	%ObjectHijack(!CastleObj0F, VertPipeExtMain, 0)

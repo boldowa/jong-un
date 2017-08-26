@@ -1,5 +1,5 @@
 #-----------------------------------------------------------
-# CMakeList for jong-un
+# CMakeList for unko
 #-----------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.1)
@@ -35,7 +35,7 @@ endmacro(add_common_define)
 set(CMAKE_BUILD_TYPE "Release")
 
 ### Visual Studio Solution Name
-project(jong-un)
+project(unko)
 
 ###### specify C and C++ compile option
 ### soecify unix compile option
@@ -93,7 +93,7 @@ endif(MSVC)
 
 
 ### visual studio directory config
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "jong-un")
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "unko")
 
 ### add common library
 set(C_INC_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
@@ -102,12 +102,12 @@ set(C_INC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/include/file")
 
 ### build
 link_directories("./")
-Make(jong-un)
+Make(unko)
 
 if(UNIX)
 	set(CUR "${CMAKE_CURRENT_SOURCE_DIR}")
 	set(TGTPATH "${CMAKE_CURRENT_SOURCE_DIR}/release")
-	add_custom_target(r cp jong-un ${TGTPATH}/
+	add_custom_target(r cp unko ${TGTPATH}/
 		COMMAND cp ${CUR}/doc/readme.txt ${TGTPATH}/
 #		COMMAND cp ${CUR}/doc/readme_jp.txt ${TGTPATH}/
 		COMMAND cp ${CUR}/doc/LICENSE ${TGTPATH}/

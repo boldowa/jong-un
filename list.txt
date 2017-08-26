@@ -1,5 +1,5 @@
 //************************************************
-// Jong-un objects list file
+// Unko objects list file
 //
 // !--- Caution ---!
 //     These objects are reserved by Lunar Magic.

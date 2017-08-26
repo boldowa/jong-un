@@ -82,8 +82,8 @@
 VertPipeExtMain:
 ;--- Initial routine -----------------------------
 
-	if !isJongunInstalled == 0
-		; Jong-un isn't installed
+	if !isUnkoInstalled == 0
+		; Unko isn't installed
 		pla		;\   Remove JSR return address from stack
 		pla		;/
 	endif

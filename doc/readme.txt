@@ -1,7 +1,7 @@
 +----------------------------------------------------------+
-| Jong-Un (Object Insertion Tool)                          |
-| -------                                                  |
-|                  ... he is very fond of standing out ... |
+| UNKO - UNKnown Object  (Object Insertion Tool)           |
+| ----------------------------------------------           |
+|              ... ~~he is very fond of standing out~~ ... |
 |                                                          |
 |                                                          |
 |   - ver. 1.21                                            |
@@ -55,7 +55,7 @@
   |
   +-- sys                              ... System file directory.
   |    |
-  |    +-- jong-un.asm                 ... Jong-un's init patch. 
+  |    +-- unko.asm                 ... Unko's init patch. 
   |    |                                   This patch will apply to rom automatically.
   |    |
   |    +-- smwlibs.asm                 ... smw jsl libraries declaration file.
@@ -90,16 +90,16 @@
   |
   +-- list.txt                         ... Object list.
   +-- libasar.so or asar.dll           ... library for asm patch, asar v1.5.0
-  +-- jong-un                          ... main program. (compiled with gcc)
-  +-- jong-un.exe                      ... compiled with visual studio 2015.
+  +-- unko                          ... main program. (compiled with gcc)
+  +-- unko.exe                      ... compiled with visual studio 2015.
   +-- readme.txt                       ... It's file that just you are reading.
   +-- LICENSE                          ... license file
   |
-  +-- sources                          ... Jong-un source files
+  +-- sources                          ... Unko source files
 
 
 [Command-line option]
-Usage: jong-un [options] <rom>
+Usage: unko [options] <rom>
 ***
   -l           <file name>     ... specify the object list file name.
   --list       <file name>         default is "list.txt".
@@ -114,7 +114,7 @@ Usage: jong-un [options] <rom>
   --define     (var)               but, Asar doesn't have syntax like "ifndef" (maybe).
                                    so, it can't be used effectively.
 ***
-  -u                           ... uninstall all of data about Jong-un from rom.
+  -u                           ... uninstall all of data about Unko from rom.
   --uninstall
 ***
   -d                           ... enable to output debug info.
@@ -180,7 +180,7 @@ Usage: jong-un [options] <rom>
 
 [ASM format]
 
-  Jong-un require "main" label.
+  Unko require "main" label.
   So you must define "main" label in object asm file.
 
   example:
@@ -232,7 +232,7 @@ Usage: jong-un [options] <rom>
 
 
 [MapMode]
-  Jong-un detects mapmode automatically.
+  Unko detects mapmode automatically.
   if you want to get mapmode in asm, you can get rom type from "!map" define.
     case
       0 ... Unknown
@@ -244,10 +244,10 @@ Usage: jong-un [options] <rom>
 
 
 [Search path]
-  Jong-un searches list file and library sources and object sources in
+  Unko searches list file and library sources and object sources in
     (1) Current directory
     (2) ROM file directory
-    (3) jong-un exe directory
+    (3) unko exe directory
 
   If file names conflict, 
     (objects list) Insert one with the highest search rank.
@@ -256,7 +256,7 @@ Usage: jong-un [options] <rom>
 
 
 [Others]
-  Jong-un can get the object's property from print code.
+  Unko can get the object's property from print code.
   This featur was created assuming extension of Lunar Magic.
   Currently you can't make effective use.
   Currently it's possible to check in debug outputs.
@@ -269,12 +269,12 @@ Usage: jong-un [options] <rom>
   VertElongationAmount      ... int   [default:  1   ]
 
 
-[Jong-un program library]
-  Jong-un uses this library.
+[Unko program library]
+  Unko uses this library.
 
     - Asar ...   (C)Alcaro
-                     License: LGPLv3
+                    License: LGPLv3
 
-[Jong-un program License]
+[Unko program License]
   MIT License.
 
