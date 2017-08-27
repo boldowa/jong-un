@@ -5,7 +5,7 @@ CPPUTEST_USE_GCOV = Y
 CPPUTEST_EXE_FLAGS = -c
 
 # Set asar Flags
-CPPUTEST_LDFLAGS = -L. -lasar -ldl
+CPPUTEST_LDFLAGS = -L. -Lbolib/build -lbolib -lasar -ldl
 
 #---- Outputs ----#
 COMPONENT_NAME = unko
@@ -37,6 +37,8 @@ INCLUDE_DIRS =\
   .\
   include \
   include/* \
+  bolib/include \
+  bolib/include/* \
   $(CPPUTEST_HOME)/include/ \
   $(CPPUTEST_HOME)/include/Platforms/Gcc\
   mocks

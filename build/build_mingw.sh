@@ -16,7 +16,7 @@ if test ! $? ; then
 	exit
 fi
 
-rm -rf CMake* cmake_*
+rm -rf CMake* cmake_* bolib Makefile
 
 echo "Build start..."
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/mingw-x86.cmake ..; cmake ..; make

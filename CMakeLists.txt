@@ -14,11 +14,25 @@ macro(Make target)
 	if(MINGW OR MSVC)
 		set(MAIN_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/res/${target}.rc")
 	endif()
+
+        # bolib
+        set(BOLR "${CMAKE_CURRENT_SOURCE_DIR}/bolib/include")
+
+
 	add_executable(${target} ${MAIN_FILE} ${SRC_FILES} ${MAIN_RESOURCE})
-	target_include_directories(${target} PRIVATE ${_INC} ${MAIN_INC} ${C_INC_COMMON} ${C_INC_ASAR} ${C_INC_FILE})
+	target_include_directories(${target} PRIVATE
+                ${_INC}
+                ${MAIN_INC}
+                ${C_INC_COMMON}
+                ${C_INC_ASAR}
+                ${BOLR}
+                ${BOLR}/common
+                ${BOLR}/file
+                )
 	if(UNIX)
 	target_link_libraries(${target} "dl" "asar")
 	endif(UNIX)
+	target_link_libraries(${target} bolib)
 endmacro(Make)
 
 ### option putout macro
@@ -95,10 +109,11 @@ endif(MSVC)
 ### visual studio directory config
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "unko")
 
+add_subdirectory(bolib)
+
 ### add common library
 set(C_INC_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
 set(C_INC_ASAR "${CMAKE_CURRENT_SOURCE_DIR}/include/asar")
-set(C_INC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/include/file")
 
 ### build
 link_directories("./")

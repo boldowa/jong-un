@@ -21,7 +21,7 @@ if test ! -e libasar.so ; then
 	exit
 fi
 
-rm -rf CMake* cmake_*
+rm -rf CMake* cmake_* bolib Makefile
 
 echo "Build start..."
 cmake ..; cmake ..; make
