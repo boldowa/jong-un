@@ -16,7 +16,7 @@ if test ! $? ; then
 	exit
 fi
 
-if test ! -e libasar.so ; then
+if test ! -e libasar.so -a ! -e ../libasar.so ; then
 	echo "Error: \"libasar.so\" is minnsing..."
 	exit
 fi

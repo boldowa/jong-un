@@ -30,8 +30,8 @@ macro(Make target)
                 ${BOLR}/file
                 )
 	if(UNIX)
-	target_link_libraries(${target} "dl" "asar")
-	endif(UNIX)
+                target_link_libraries(${target} "dl" "asar")
+        endif(UNIX)
 	target_link_libraries(${target} bolib)
 endmacro(Make)
 
@@ -116,7 +116,7 @@ set(C_INC_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
 set(C_INC_ASAR "${CMAKE_CURRENT_SOURCE_DIR}/include/asar")
 
 ### build
-link_directories("./")
+link_directories(${CMAKE_CURRENT_BINARY_DIR} "./")
 Make(unko)
 
 if(UNIX)
