@@ -27,12 +27,12 @@ VS_VERSION_INFO VERSIONINFO
 	{
 		BLOCK "040904b0"
 		{
-			VALUE "CompanyName",		"N.K. Entertainment\0"
+			VALUE "CompanyName",		"UNKO=UN\0"
 			VALUE "FileDescription",	"SMW Object Insertion Tool\0"
 			VALUE "FileVersion",		ResV(FileVersion)
 			VALUE "InternalVersion",	"null\0"
 			VALUE "OriginalFileName",	"unko.exe\0"
-			VALUE "LegalCopyright",		"(C) General of the North\0"
+			VALUE "LegalCopyright",		"(C) 2017 Rotay Dial Phone\0"
 			VALUE "ProductName",		ResV(_AppName)
 			VALUE "ProductVersion",		ResV(AppVersion)
 		}

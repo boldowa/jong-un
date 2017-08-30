@@ -207,7 +207,7 @@ bool ParseList(const char* listName, InsertList list)
 				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
 				NULL
 				);
-		if(INVALID_HANDLE_VALUE == hFile)
+		if(INVALID_HANDLE_VALUE != hFile)
 		{
 			CloseHandle(hFile);
 #else

@@ -514,7 +514,7 @@ static void ShowVersion()
 	api_ver_maj = asar_apiversion()/100;
 	api_ver_min = asar_apiversion()%100;
 
-	printf("%s v%.2f [Code: v0x%04x]\n", AppName, AppVersion, CodeVersion);
+	printf("%s v%.2lf [Code: v0x%04x]\n", AppName, AppVersion, CodeVersion);
 	printf("  by boldowa\n");
 	printf("  since    : May 13 2017\n");
 	printf("  compiled : %s\n", __DATE__);
@@ -1322,14 +1322,14 @@ static bool WriteRom(const char *rompath, const OptionValue* opt, bool (*proc)(R
 bool vdebug		= false;	/* @brief option value for puts.h */
 
 /**
- * @brief main
+ * @brief Unko main
  *
  * @param argc arguments count
- * @param argv arguments values
+ * @param argv arguments value
  *
  * @return result
  */
-int main(int argc, char** argv)
+int Unko(int argc, char** argv)
 {
 	/* options */
 	bool showHelp = false;
@@ -1442,4 +1442,17 @@ int main(int argc, char** argv)
 
 	putinfo("--- Succeeded.");
 	return 0;
+}
+
+/**
+ * @brief Program entry point
+ *
+ * @param argc arguments count
+ * @param argv arguments values
+ *
+ * @return result
+ */
+int main(int argc, char** argv)
+{
+	return Unko(argc, argv);
 }
