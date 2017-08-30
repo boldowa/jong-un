@@ -3,7 +3,9 @@
 -Imocks
 -Iinclude
 -Iinclude/common
--Iinclude/file
 -Iinclude/asar
 -Iinclude/unko
+-Ibolib/include
+-Ibolib/include/common
+-Ibolib/include/file
 -DUNIX

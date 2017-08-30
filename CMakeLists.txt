@@ -80,10 +80,10 @@ if(UNIX)
         add_common_define(CMAKE_C_FLAGS_DEBUG UNIX)
         add_common_define(CMAKE_C_FLAGS_RELEASE UNIX)
 endif(UNIX)
-if(MINGW)
+if(MINGW OR MSVC)
         add_common_define(CMAKE_C_FLAGS_DEBUG WIN32)
         add_common_define(CMAKE_C_FLAGS_RELEASE WIN32)
-endif(MINGW)
+endif()
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	add_common_define(CMAKE_C_FLAGS_DEBUG DEBUG)
 else()
@@ -138,6 +138,14 @@ if(UNIX)
 		COMMAND cp -r ${CUR}/toolchain ${TGTPATH}/sources/
 		COMMAND rm -rf ${TGTPATH}/sources/src/util
 		COMMAND rm -rf ${TGTPATH}/sources/include/util
+
+		COMMAND mkdir ${TGTPATH}/sources/bolib
+		COMMAND cp -r ${CUR}/bolib/src ${TGTPATH}/sources/bolib/
+		COMMAND cp -r ${CUR}/bolib/include ${TGTPATH}/sources/bolib/
+		COMMAND cp -r ${CUR}/bolib/CMakeLists.txt ${TGTPATH}/sources/bolib/
+		COMMAND cp -r ${CUR}/bolib/toolchain ${TGTPATH}/sources/bolib/
+		COMMAND rm -rf ${TGTPATH}/sources/bolib/src/util
+		COMMAND rm -rf ${TGTPATH}/sources/bolib/include/util
 
 		COMMAND mkdir ${TGTPATH}/sources/build
 		COMMAND cp ${CUR}/build/build.sh ${TGTPATH}/sources/build/

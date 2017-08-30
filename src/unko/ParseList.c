@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/stat.h>
+#if isWindows
+#  include <windows.h>
+#else
+#  include <sys/stat.h>
+#endif
 #include <setjmp.h>
 #include "Enviroment.h"
 #include "puts.h"
@@ -168,9 +172,13 @@ static void RemoveComment(char* line)
 
 bool ParseList(const char* listName, InsertList list)
 {
+#if isWindows
+	HANDLE hFile;
+#else
+	struct stat sts;
+#endif
 	jmp_buf e;
 	char* path = NULL;
-	struct stat sts;
 	char* lstPath = NULL;
 	TextFile* lstFile;
 	const char* linebuf;
@@ -191,12 +199,21 @@ bool ParseList(const char* listName, InsertList list)
 	{
 		free(path);
 		path = Str_concat(Enviroment.SearchPath[i], listName);
-#if !defined(WIN32) && !defined(_WIN32)
-		if(0 == stat(path, &sts) && S_ISREG(sts.st_mode))
-#else
-		if(0 == stat(path, &sts) && (0 != (_S_IREAD & sts.st_mode)))
-#endif
+#if isWindows
+		hFile = CreateFile(
+				path,
+				GENERIC_READ, FILE_SHARE_READ,
+				NULL,
+				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+				NULL
+				);
+		if(INVALID_HANDLE_VALUE == hFile)
 		{
+			CloseHandle(hFile);
+#else
+		if(0 == stat(path, &sts) && S_ISREG(sts.st_mode))
+		{
+#endif
 			lstPath = path;
 		}
 	}
