@@ -7,20 +7,47 @@ cmake_minimum_required(VERSION 3.1)
 ### add exe
 macro(Make target)
 	file(GLOB SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.c")
-	set(MAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/${target}.c")
-	set(MAIN_INC "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
-	set(_INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-	set(MAIN_RESOURCE "")
-	if(MINGW OR MSVC)
-		set(MAIN_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/res/${target}.rc")
-	endif()
+        set(MAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/${target}.c")
+        set(MAIN_INC "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
+        set(_INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+        set(MAIN_RESOURCE "")
+        if(MINGW OR MSVC)
+                set(MAIN_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/res/${target}.rc")
+        endif()
+
+        add_executable(${target} ${MAIN_FILE} ${SRC_FILES} ${MAIN_RESOURCE})
+        if(UNIX)
+                target_link_libraries(${target} "dl" "asar")
+        endif(UNIX)
+
+        set(COMPILER_H ${PROJECT_BINARY_DIR}/compiler.h)
+        if(UNIX OR MINGW)
+        execute_process(
+                COMMAND sh "${PROJECT_BINARY_DIR}/ccname.sh" "${CMAKE_C_COMPILER}"
+                OUTPUT_VARIABLE C_COMPILER
+                )
+        add_custom_target(compiler_h
+                COMMAND echo " \#pragma once" > "${COMPILER_H}"
+                COMMAND echo " \#define C_COMPILER \\\"${C_COMPILER}\\(${CMAKE_C_COMPILER_ID}\\)\\\"" >> "${COMPILER_H}"
+                COMMAND echo " \#define C_COMPILER_VER \\\"${CMAKE_C_COMPILER_VERSION}\\\"" >> "${COMPILER_H}"
+                )
+        elseif(MSVC)
+        execute_process(
+                COMMAND "${PROJECT_BINARY_DIR}/ccname.bat" "${CMAKE_C_COMPILER}"
+                OUTPUT_VARIABLE C_COMPILER
+                )
+        add_custom_target(compiler_h
+                COMMAND echo \#pragma once > "${COMPILER_H}"
+                COMMAND echo " \#define C_COMPILER \"${C_COMPILER}\(${CMAKE_C_COMPILER_ID}\)\"" >> "${COMPILER_H}"
+                COMMAND echo " \#define C_COMPILER_VER \"${CMAKE_C_COMPILER_VERSION}\"" >> "${COMPILER_H}"
+                )
+        endif()
+        add_dependencies(${target} compiler_h)
 
         # bolib
         set(BOLR "${CMAKE_CURRENT_SOURCE_DIR}/bolib/include")
-
-
-	add_executable(${target} ${MAIN_FILE} ${SRC_FILES} ${MAIN_RESOURCE})
-	target_include_directories(${target} PRIVATE
+        target_include_directories(${target} PRIVATE
+                ${PROJECT_BINARY_DIR}
                 ${_INC}
                 ${MAIN_INC}
                 ${C_INC_COMMON}
@@ -29,9 +56,6 @@ macro(Make target)
                 ${BOLR}/common
                 ${BOLR}/file
                 )
-	if(UNIX)
-                target_link_libraries(${target} "dl" "asar")
-        endif(UNIX)
 	target_link_libraries(${target} bolib)
 endmacro(Make)
 
@@ -150,6 +174,8 @@ if(UNIX)
 		COMMAND mkdir ${TGTPATH}/sources/build
 		COMMAND cp ${CUR}/build/build.sh ${TGTPATH}/sources/build/
 		COMMAND cp ${CUR}/build/build_mingw.sh ${TGTPATH}/sources/build/
+		COMMAND cp ${CUR}/build/ccname.sh ${TGTPATH}/sources/build/
+		COMMAND cp ${CUR}/build/ccname.bat ${TGTPATH}/sources/build/
 
 		COMMAND rm -rf ${TGTPATH}/sys
 		COMMAND cp -r ${CUR}/sys ${TGTPATH}/

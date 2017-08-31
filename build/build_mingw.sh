@@ -1,4 +1,4 @@
-#/bin/env sh
+#!/bin/sh
 ########################################
 # build script
 ########################################
@@ -16,9 +16,9 @@ if test ! $? ; then
 	exit
 fi
 
-rm -rf CMake* cmake_* bolib Makefile
+rm -rf CMake* cmake_* bolib compiler.h Makefile
 
 echo "Build start..."
-cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/mingw-x86.cmake ..; cmake ..; make
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/mingw-x86.cmake ..; cmake ..; make -j2
 sync
 

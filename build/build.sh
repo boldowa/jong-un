@@ -1,4 +1,4 @@
-#/bin/env sh
+#!/bin/sh
 ########################################
 # build script
 ########################################
@@ -21,9 +21,9 @@ if test ! -e libasar.so -a ! -e ../libasar.so ; then
 	exit
 fi
 
-rm -rf CMake* cmake_* bolib Makefile
+rm -rf CMake* cmake_* bolib compiler.h Makefile
 
 echo "Build start..."
-cmake ..; cmake ..; make
+cmake ..; cmake ..; make -j2
 sync
 

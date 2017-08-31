@@ -4,6 +4,7 @@
  */
 
 #include "common/types.h"
+#include "compiler.h"
 #include <assert.h>
 #include <setjmp.h>
 #include <ctype.h>
@@ -518,6 +519,7 @@ static void ShowVersion()
 	printf("  by boldowa\n");
 	printf("  since    : May 13 2017\n");
 	printf("  compiled : %s\n", __DATE__);
+	printf("             with %s ver.%s\n", C_COMPILER, C_COMPILER_VER);
 	printf("Asar: v%d.%d.%d\n", asar_ver_maj, asar_ver_min, asar_ver_bug);
 	printf("  API v%d.%d\n", api_ver_maj, api_ver_min);
 }
