@@ -1,8 +1,31 @@
 # Unko
 
-## English
 A tool for inserting custom objects into an SMW ROM.
 
-## 日本語
-SWW用のオブジェクト挿入ツールの類です。
+## How to use
+
+[It's here](https://boldowa.github.io/unko/).
+
+## How to compile
+
+This program require [cmake](https://cmake.org).
+
+Please install it.
+
+And if you are using the Linux OS, it needs libasar.so.
+
+
+### Windows
+
+![cmake gui](pic/cmake-gui.png)
+
+Please let cmake load the CMakeLists.txt
+
+### Linux
+
+1. Move to "build" folder.
+
+2. Run "build.sh".
+
+
 
