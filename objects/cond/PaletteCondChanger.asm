@@ -15,7 +15,7 @@
 ;                           ... bbbb = BG
 ;-------------------------------------------------
 
-GFXIndexCondChanger:
+PaletteCondChanger:
 	jsr	PaletteCondChk
 	bcc	+
 	lda.b	$59		;\
