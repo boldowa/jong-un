@@ -3,14 +3,14 @@
 /**
  * Application Name
  */
-#define _AppName	Unko
-#define AppName		"Unko"
+#define _AppName	UNKO
+#define AppName		"UNKO"
 
 /**
  * Version
  */
-#define AppVersion		1.21
-#define ResVersion		1,2,1,0
-#define FileVersion		5
+#define AppVersion		1.22
+#define ResVersion		1,2,2,0
+#define FileVersion		6
 #define CodeVersion		0x0110
 

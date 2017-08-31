@@ -4,7 +4,7 @@
 |              ... ~~he is very fond of standing out~~ ... |
 |                                                          |
 |                                                          |
-|   - ver. 1.21                                            |
+|   - ver. 1.22                                            |
 |                                                          |
 |   Changelog)                                             |
 |                                                          |
@@ -32,6 +32,10 @@
 |                            now actually work             |
 |                          + Other minor code fixes        |
 |                                                          |
+|     08-31-2017 [v1.22] : Fixed some bugs.                |
+|                            Github issue : #2,  #3,  #4,  |
+|                                           #5,  #6,  #10  |
+|                                                          |
 +----------------------------------------------------------+
 
 [What is this?]
@@ -40,10 +44,10 @@
 
   This tool supports these rom map type:
     - LoRom
-    - HiRom
+    - HiRom (?)
     - ExLoRom
-    - ExHiRom
-    - SA-1Rom(probably).
+    - ExHiRom (?)
+    - SA-1Rom (probably).
 
 
 [Supported system]
@@ -55,7 +59,7 @@
   |
   +-- sys                              ... System file directory.
   |    |
-  |    +-- unko.asm                 ... Unko's init patch. 
+  |    +-- unko.asm                    ... Unko's init patch. 
   |    |                                   This patch will apply to rom automatically.
   |    |
   |    +-- smwlibs.asm                 ... smw jsl libraries declaration file.
@@ -90,8 +94,8 @@
   |
   +-- list.txt                         ... Object list.
   +-- libasar.so or asar.dll           ... library for asm patch, asar v1.5.0
-  +-- unko                          ... main program. (compiled with gcc)
-  +-- unko.exe                      ... compiled with visual studio 2015.
+  +-- unko.exe                         ... main program. (compiled with Visual Studio 2008)
+  +-- unko_mingw.exe                   ... compiled with MinGW-w64.
   +-- readme.txt                       ... It's file that just you are reading.
   +-- LICENSE                          ... license file
   |
