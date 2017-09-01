@@ -168,7 +168,7 @@ static bool IsUnkoMainData(const uint8* data, const uint32 len)
 	return true;
 }
 
-void RomClean_v0100(RomFile* rom)
+static void RomClean_v0100(RomFile* rom)
 {
 	uint8* ptr;
 
@@ -360,6 +360,8 @@ static bool InstallUnko(RomFile* rom)
 {
 	char* asmPath;
 	bool res;
+	uint32 adrMain;
+	uint16 codeVer;
 
 	asmPath = Str_concat(Enviroment.ExeDir, AsmPath);
 	res = InsertAsm(rom, asmPath, PutsSignature);
@@ -367,6 +369,17 @@ static bool InstallUnko(RomFile* rom)
 
 	if(false == res)
 	{
+		return false;
+	}
+
+	/* Verify the install version */
+	adrMain = rom->RatsSearch(rom, 0x108000, IsUnkoMainData);
+	if(ROMADDRESS_NULL == adrMain) return false;
+	codeVer = GetCodeVersion(rom, adrMain);
+	if(CodeVersion != codeVer)
+	{
+		putfatal("Program error: Unmatch asm code version");
+		putfatal("               Program: 0x%04x | asm: 0x%04x", CodeVersion, codeVer);
 		return false;
 	}
 
@@ -823,6 +836,7 @@ int Unko(int argc, char** argv)
 	return 0;
 }
 
+#ifndef CPPUTEST
 /**
  * @brief Program entry point
  *
@@ -835,3 +849,4 @@ int main(int argc, char** argv)
 {
 	return Unko(argc, argv);
 }
+#endif
