@@ -44,7 +44,7 @@ INCLUDE_DIRS =\
   $(CPPUTEST_HOME)/include/Platforms/Gcc\
   mocks
 
-CPPUTEST_CFLAGS = -DUNIX -ansi
+CPPUTEST_CFLAGS = -DUNIX -DCPPUTEST -ansi
 CPPUTEST_WARNINGFLAGS = -Wall -Werror -Wswitch-default 
 CPPUTEST_WARNINGFLAGS += -Wconversion -Wswitch-enum 
 
