@@ -21,9 +21,10 @@ macro(Make target)
         endif(UNIX)
 
         set(COMPILER_H ${PROJECT_BINARY_DIR}/compiler.h)
+        set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/build")
         if(UNIX OR MINGW)
         execute_process(
-                COMMAND sh "${PROJECT_BINARY_DIR}/ccname.sh" "${CMAKE_C_COMPILER}"
+                COMMAND sh "${BUILD_DIR}/ccname.sh" "${CMAKE_C_COMPILER}"
                 OUTPUT_VARIABLE C_COMPILER
                 )
         add_custom_target(compiler_h
@@ -33,7 +34,7 @@ macro(Make target)
                 )
         elseif(MSVC)
         execute_process(
-                COMMAND "${PROJECT_BINARY_DIR}/ccname.bat" "${CMAKE_C_COMPILER}"
+                COMMAND "${BUILD_DIR}/ccname.bat" "${CMAKE_C_COMPILER}"
                 OUTPUT_VARIABLE C_COMPILER
                 )
         add_custom_target(compiler_h
