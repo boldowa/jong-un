@@ -4,7 +4,6 @@
  */
 
 #include "common/types.h"
-#include "compiler.h"
 #include <assert.h>
 #include <setjmp.h>
 #include <ctype.h>
@@ -19,9 +18,11 @@
 #include "file/File.h"
 #include "file/RomFile.h"
 #include "file/TextFile.h"
+#include "smw/libsmw.h"
 #include "asar/asardll.h"
 #include "unko/version.h"
 #include "unko/Signature.h"
+#include "unko/ParseCmdDefs.h"
 #include "unko/ParseList.h"
 #include "unko/Objects.h"
 #include "unko/Libraries.h"
@@ -48,8 +49,11 @@
  */
 #define DefaultObjDirName	"objects"
 
-#define NrmObjEmpty		0x0db3e3
+/**
+ * SMW library address
+ */
 #define ExecutePtrLong		0x0086fa
+
 
 typedef struct OptionValue {
 	const char* listName;
@@ -58,410 +62,7 @@ typedef struct OptionValue {
 	List* defineList;
 } OptionValue;
 
-/**
- * InsertGroup
- */
-static InsertListRangeStruct range1[] = {
-	{0x29, 0x2c, NrmObjEmpty},
-	{0x2e, 0x2f, NrmObjEmpty},
-	{-1, -1}
-};
-static InsertListRangeStruct range2[] = {
-	{0x29, 0x2c, NrmObjEmpty},
-	{0x2e, 0x33, NrmObjEmpty},
-	{-1, -1}
-};
-static InsertListRangeStruct range3[] = {
-	{0x29, 0x2c, NrmObjEmpty},
-	{0x2e, 0x31, NrmObjEmpty},
-	{-1, -1}
-};
-static InsertListRangeStruct range4[] = {
-	{0x29, 0x2c, NrmObjEmpty},
-	{0x2e, 0x33, NrmObjEmpty},
-	{-1, -1}
-};
-static InsertListRangeStruct range5[] = {
-	{0x29, 0x2c, NrmObjEmpty},
-	{-1, -1}
-};
-static InsertListRangeStruct range6[] = {
-	{0x02, 0x0f, 0x000000},
-	{0x98, 0xff, 0x0da6d1},
-	{-1, -1}
-};
-static InsertListRangeStruct range7[] = {
-	{0x00, 0xff, 0x0da8c3},
-	{-1, -1}
-};
-static InsertListGroupStruct Grps[] = {
-	{ 0x0da452, range1 }, /* Normal */
-	{ 0x0dc197, range2 }, /* Castle */
-	{ 0x0dcd97, range3 }, /* Rope */
-	{ 0x0dd997, range4 }, /* Underground */
-	{ 0x0de897, range5 }, /* Ghosthouse */
-	{ 0x0da10f, range6 }, /* ExObj */
-	{ ROMADDRESS_NULL, range7 }, /* 2D */
-
-	{ ROMADDRESS_NULL, NULL }
-};
-
 typedef void (*InsertAsmInjection_t)(TextFile*);
-
-static Define* MakeDefine(const char* srcname, const char* srcval)
-{
-	size_t len;
-	size_t i;
-	size_t st;
-	Define* def = NULL;
-	char* name = NULL;
-	char* val = NULL;
-
-	if((NULL == srcname) || (NULL == srcval))
-	{
-		return NULL;
-	}
-
-	len = strlen(srcname);
-	i = 0;
-
-	SkipSpaces(srcname, &i, len);
-	st = i;
-	for(i=len; 0<i; i--)
-	{
-		if(false == IsSpace(srcname[i]))
-		{
-			break;
-		}
-	}
-	if(i == st) return NULL;
-
-	len = i - st;
-
-	name = calloc(len+1, sizeof(char));
-	val = calloc(strlen(srcname)+1, sizeof(char));
-	def = calloc(1, sizeof(Define));
-
-	if(NULL == def || NULL == val || NULL == name)
-	{
-		free(def);
-		free(val);
-		free(name);
-		return NULL;
-	}
-
-	strncpy_s(name, len+1, &srcname[st], len);
-	strcpy_s(val, strlen(srcname)+1, srcval);
-
-	def->name = name;
-	def->val = val;
-
-	return def;
-}
-
-static void* CloneDefine(const void* srcv)
-{
-	Define* src;
-	Define* clone;
-	char* name;
-	char* val;
-
-	if(NULL == srcv) return NULL;
-
-	src = (Define*)srcv;
-
-	name = Str_copy(src->name);
-	val = Str_copy(src->val);
-	clone = calloc(1, sizeof(Define));
-
-	if((NULL == name) || (NULL == val) || (NULL == clone))
-	{
-		free(name);
-		free(val);
-		free(clone);
-		return NULL;
-	}
-	strcpy_s(name, strlen(src->name)+1, src->name);
-	strcpy_s(val, strlen(src->val)+1, src->val);
-	clone->name = name;
-	clone->val = val;
-
-	return clone;
-}
-
-static void DelDefine(void* tgt)
-{
-	Define* def;
-	if(NULL == tgt) return;
-
-	def = (Define*)tgt;
-	free(def->name);
-	free(def->val);
-	free(def);
-}
-
-enum {
-	Match_Empty = 0,
-	Match_IntegerDefine,
-	Match_ParamDefine,
-	Unmatch
-};
-static bool MatchEmpty(const char* cmd, void* p)
-{
-	size_t i;
-	size_t len;
-
-	len = strlen(cmd);
-
-	for(i=0; i<len; i++)
-	{
-		if(false == IsSpace(cmd[i]))
-		{
-			return false;
-		}
-	}
-	if(i != len) return false;
-
-	return true;
-}
-static bool IntegerInjection(const char* cmd)
-{
-	size_t i;
-	size_t len;
-
-	len = strlen(cmd);
-	i = 0;
-
-	/* check hex */
-	if('$' == cmd[0])
-	{
-		i++;
-		for(; i<len; i++)
-		{
-			if(false == ishex(cmd[i]))
-			{
-				break;
-			}
-		}
-
-		if(i != len)
-		{
-			return false;
-		}
-
-		putdebug("Match Hex value: %s", cmd);
-		return true;
-	}
-
-	/* check integer */
-	if('-' == cmd[i]) i++;
-	for(; i<len; i++)
-	{
-		if(false == isdigit(cmd[i]))
-		{
-			break;
-		}
-	}
-	if(i != len)
-	{
-		return false;
-	}
-
-	putdebug("Match Int value: %s", cmd);
-	return true;
-}
-static bool MatchParam_Shared(const char* cmd, void* defv, bool (*injection)(const char*))
-{
-	size_t i;
-	size_t len;
-	size_t st;
-	char* name;
-	size_t namelen;
-	char* val;
-	size_t vallen;
-	Define *def = (Define*)defv;
-
-	len = strlen(cmd);
-	i = 0;
-
-	SkipSpaces(cmd, &i, len);
-	st = i;
-
-	SkipUntilChar(cmd, &i, '=', len);
-	if(i == len) return false;
-
-	namelen = i - st;
-	name = calloc((size_t)namelen+1, sizeof(char));
-	if(NULL == name)
-	{
-		putfatal("%s: memory error.", __func__);
-		return false;
-	}
-	strncpy_s(name, namelen+1, &cmd[st], namelen);
-
-	/* '=' */
-	i++;
-
-	SkipSpaces(cmd, &i, len);
-	if(i == len)
-	{
-		free(name);
-		return false;
-	}
-	st = i;
-
-	/* search value */
-	SkipUntilSpaces(cmd, &i, len);
-	if(i != len)
-	{
-		free(name);
-		return false;
-	}
-
-	/* get define value */
-	vallen = i - st;
-	val = calloc(vallen+1, sizeof(char));
-	if(NULL == val)
-	{
-		putfatal("%s: memory error.", __func__);
-		free(name);
-		return false;
-	}
-	strncpy_s(val, vallen+1, &cmd[st], vallen);
-
-	/* shirk space */
-	CutOffTailSpaces(val);
-
-	vallen = strlen(val);
-
-	/* check integer injection */
-	if(NULL == injection)
-	{
-		char* newval = NULL;
-
-		vallen += 2;
-		newval = calloc((size_t)vallen+1, sizeof(char));
-		if(NULL == newval)
-		{
-			putfatal("%s: memory error.", __func__);
-			free(name);
-			free(val);
-			return false;
-		}
-		newval[0] = '"';
-		strcpy_s(&newval[1], vallen-1, val);
-		newval[strlen(val)+1] = '"';
-		free(val);
-		val = newval;
-	}
-	else
-	{
-		if(false == injection(val))
-		{
-			free(name);
-			free(val);
-			return false;
-		}
-	}
-
-	/* shirk space */
-	CutOffTailSpaces(name);
-
-	def->name = name;
-	def->val = val;
-
-	return true;
-}
-static bool MatchIntegerDefine(const char* cmd, void* defv)
-{
-	return MatchParam_Shared(cmd, defv, IntegerInjection);
-}
-static bool MatchParamDefine(const char* cmd, void* defv)
-{
-	return MatchParam_Shared(cmd, defv, NULL);
-}
-static bool SearchDefine(const void* s1, const void* s2)
-{
-	const char* name = (const char*)s1;
-	Define *d = (Define*)s2;
-
-	return(0 == strcmp(name, d->name));
-}
-static bool AddDefine(void* dst, const char* cmdline)
-{
-	List* defineList;
-	Define def;
-	Define* d;
-	Iterator* lnode;
-
-	FunexStruct funex[] = {
-		{ MatchEmpty, NULL },
-		{ MatchIntegerDefine, &def },
-		{ MatchParamDefine, &def },
-		{ NULL, NULL }
-	};
-
-	if(NULL == dst)
-	{
-		putfatal("%s: Program logic error: dst is NULL", __func__);
-		return false;
-	}
-
-	assert(NULL != dst);
-
-	defineList = *((List**)dst);
-
-	/* parse define */
-	switch(FunexMatch(cmdline, funex))
-	{
-		case Match_Empty:
-			return false;
-
-		case Match_IntegerDefine:
-		case Match_ParamDefine:
-			putdebug("Match param define: !%s = %s", def.name, def.val);
-
-			d = malloc(sizeof(Define));
-			if(NULL == d)
-			{
-				putdebug("%s : memory error.", __func__);
-				return false;
-			}
-			memcpy(d, &def, sizeof(Define));
-
-			lnode = defineList->search(defineList, d->name, SearchDefine);
-			if(NULL != lnode)
-			{
-				Define* p = lnode->data(lnode);
-				putdebug("update %s %s -> %s", d->name, p->val, d->val);
-				free(p->val);
-				p->val = d->val;
-				break;
-			}
-			defineList->push(defineList, d);
-			break;
-
-		default:
-			putdebug("Match non-param define");
-			d = MakeDefine(cmdline, "1");
-			if(NULL == d)
-			{
-				putdebug("%s : memory error.", __func__);
-				return false;
-			}
-			lnode = defineList->search(defineList, d->name, SearchDefine);
-			if(NULL != lnode)
-			{
-				putdebug("popoipo~i %s", d->name);
-				free(d);
-				break;
-			}
-			putdebug("defined: !%s = 1", d->name);
-			defineList->push(defineList, d);
-			break;
-	}
-	return true;
-}
 
 
 static void DeleteLibraryList(void* data)
@@ -561,69 +162,6 @@ static bool IsUnkoMainData(const uint8* data, const uint32 len)
 	data -= SigLen;
 	if(0 != strcmp(Signature, (char*)data))
 	{
-		return false;
-	}
-
-	return true;
-}
-
-static bool IsUnkoLibData(const uint8* data, const uint32 len)
-{
-	if((SigLen+5) > len)
-	{
-		return false;
-	}
-
-	/* move to tail */
-	data += len;
-
-	/* Term + "LIB_" */
-	data -= 5;
-	if(0 != memcmp("LIB_", data, 4))
-	{
-		/* I don't know the reason, but it's well displaced. */
-		if(0 != memcmp("LIB_", --data, 4))
-		{
-			return false;
-		}
-	}
-
-	/* Signature */
-	data -= SigLen;
-	if(0 != strcmp(Signature, (char*)data))
-	{
-		return false;
-	}
-
-	return true;
-}
-
-static bool IsLMInstalled(RomFile* rom)
-{
-	uint8* p;
-	const char LMSig[] = "Lunar Magic Version ";
-	const size_t LMSigLen = strlen(LMSig);
-	char sver[8];
-	double dver;
-
-	p = rom->GetSnesPtr(rom, 0x0ff0a0);
-	if(NULL == p)
-	{
-		putdebug("%s: NULL Pointer",__func__);
-		return false;
-	}
-	if(0 != strncmp(LMSig, (char*)p, LMSigLen))
-	{
-		putdebug("%s: LMSig unmatch",__func__);
-		return false;
-	}
-	strncpy_s(sver, 8, (char*)p+LMSigLen, 4);
-	dver = atof(sver);
-
-	if(1.81 > dver)
-	{
-		putdebug("%s: LMver unmatch",__func__);
-		puterror("Note: This tool only supports Lunar Magic 1.81 or higher.");
 		return false;
 	}
 
@@ -833,138 +371,6 @@ static bool InstallUnko(RomFile* rom)
 	}
 
 	putinfo("%s installed.", AsmPath);
-	return true;
-}
-
-static bool UninstallLibs(RomFile* rom)
-{
-	uint32 sa = 0x108000;
-
-	while(sa != ROMADDRESS_NULL)
-	{
-		sa = rom->RatsSearch(rom, sa, IsUnkoLibData);
-		if(ROMADDRESS_NULL != sa)
-		{
-			putdebug("Uninstall lib at $%06x", sa);
-			if(false == rom->RatsClean(rom, sa))
-			{
-				putdebug("Libcode uninstall failed at 0x%06x", sa);
-				return false;
-			}
-			putinfo("Libcode uninstalled from 0x%06x", sa);
-		}
-	}
-
-	return true;
-}
-
-static bool SearchUInt32(const void* sval, const void* lval)
-{
-	uint32* v1 = (uint32*)sval;	/* search value */
-	uint32* v2 = (uint32*)lval;	/* list's value */
-
-	return (*v1 == *v2);
-}
-
-static bool UninstallObjects(RomFile* rom, const uint32 adrMain)
-{
-	int i,j;
-	uint32 sa;
-	uint32 szMain;
-	InsertListRangeStruct* rs;
-	uint8* tbl;
-
-	/* uninstall list */
-	uint32* uniVal;
-	List* uniList;
-
-	uniList = new_List(NULL, free);
-	if(NULL == uniList)
-	{
-		putdebug("%s : memory error.", __func__);
-		return false;
-	}
-
-	for(i=0; NULL != Grps[i].ranges; i++)
-	{
-		if(ROMADDRESS_NULL == Grps[i].sa)
-		{
-			/* Get 2D table */
-			tbl = rom->GetSnesPtr(rom, adrMain);
-			szMain = read16(&tbl[4]);
-			/* move to MAIN sig */
-			tbl = tbl + (int)szMain + 9 - 5;
-			/* address fix */
-			if(0 != memcmp("MAIN", tbl, 4))
-			{
-				if(0 != memcmp("MAIN", --tbl, 4))
-				{
-					putfatal("%s: Obj2D table is missing...", __func__);
-					delete_List(&uniList);
-					return false;
-				}
-			}
-			tbl -= (2 + SigLen + 0x300);
-		}
-		else
-		{
-			tbl = rom->GetSnesPtr(rom, Grps[i].sa);
-		}
-		for(rs = Grps[i].ranges; 0 < rs->max; rs++)
-		{
-			for(j = rs->min; j <= rs->max; j++)
-			{
-				int ti = j*3;
-
-				sa = read24(&tbl[ti]);
-
-				/* check previous deletes */
-				if(NULL != uniList->search(uniList, &sa, SearchUInt32))
-				{
-					/* found */
-					write24(&tbl[ti], rs->empty);
-					putinfo("Object %s-%02x pointer restored", GrpName[i], j);
-					continue;
-				}
-
-				if(rs->empty == sa)
-				{
-					putdebug("  skip %s-%02x", GrpName[i], j);
-					continue;
-				}
-				if(0x108000 > (sa & 0x7fffff))
-				{
-					putfatal("Program error: Invalid range : grp=%s, obj=%02x sa = $%06x", GrpName[i], j, sa);
-					delete_List(&uniList);
-					return false;
-				}
-
-				/* uninstall data */
-				if(false == rom->RatsClean(rom, sa-8))
-				{
-					putdebug("%s : Rats_Clean failed. sa = $%06x, object = %s-%02x", __func__, sa, GrpName[i],j);
-					delete_List(&uniList);
-					return false;
-				}
-
-				/* add delete list */
-				uniVal = calloc(1, sizeof(uint32));
-				if(NULL == uniVal)
-				{
-					putdebug("%s : memory error.", __func__);
-					return false;
-				}
-				*uniVal = sa;
-				uniList->push(uniList, uniVal);
-
-				/* rom address fix */
-				write24(&tbl[ti], rs->empty);
-				putinfo("Object %s-%02x is uninstalled from $%06x", GrpName[i], j, sa);
-			} /* range min-max loop */
-		} /* ranges loop */
-	} /* Grp loop */
-
-	delete_List(&uniList);
 	return true;
 }
 
@@ -1180,7 +586,7 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 
 		/* Insert objects */
 		putinfo("--- Inserting objects...");
-		if(false == InsertObjects(rom, opt->objsDirName, adrMain, &lst, Grps, libs, &objscnt, opt->defineList))
+		if(false == InsertObjects(rom, opt->objsDirName, adrMain, &lst, libs, &objscnt, opt->defineList))
 		{
 			puterror("Object insert failed.");
 			longjmp(e, 1);
@@ -1226,35 +632,6 @@ static bool Uninstall(RomFile* rom, const OptionValue* opt)
 	result &= UninstallUnko(rom, adrMain);
 
 	return result;
-}
-
-static bool IsSmw(RomFile* rom)
-{
-	uint8* ptr;
-
-	assert(rom);
-	if(0x80000 > rom->size_get(rom)) return false;
-
-	/* check rom */
-	ptr = rom->GetSnesPtr(rom, 0x806f); /* Main loop */
-	if(NULL == ptr)
-	{
-		return false;
-	}
-	if(0 == memcmp(ptr, (const void*)"\x58\xe6\x13\x20", 4))	/* CLI : INC $13 : JSR $**** */
-	{
-		uint32 x = read16(ptr+4);	/* It'll get $9322 : GetGamemode */
-		ptr = rom->GetSnesPtr(rom, x);
-		if(ptr != NULL)
-		{
-			if(0 == memcmp(ptr+7, (const void*)"\x91\x93\x0f\x94\x6f\x9f\xae\x96", 8))	/* Check Gamemode routine */
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 static bool WriteRom(const char *rompath, const OptionValue* opt, bool (*proc)(RomFile*, const OptionValue*))
@@ -1345,7 +722,7 @@ int Unko(int argc, char** argv)
 	int i;
 
 	/* command-line options */
-	SetOptStruct defOptSt = { AddDefine, &defineList };
+	SetOptStruct defOptSt = { ParseCmdDefs, &defineList };
 	OptionStruct options[] = {
 		{ "list", 'l', "specify list file path (default: " DefaultListName ")", OptionType_String, (void*)&opt.listName },
 		{ "library", 'L', "specify library dir (default: " DefaultLibDirName ")", OptionType_String, (void*)&opt.libsDirName },

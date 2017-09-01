@@ -23,6 +23,37 @@
 #include "Asarctl.h"
 #include "Libraries.h"
 
+static bool IsUnkoLibData(const uint8* data, const uint32 len)
+{
+	if((SigLen+5) > len)
+	{
+		return false;
+	}
+
+	/* move to tail */
+	data += len;
+
+	/* Term + "LIB_" */
+	data -= 5;
+	if(0 != memcmp("LIB_", data, 4))
+	{
+		/* I don't know the reason, but it's well displaced. */
+		if(0 != memcmp("LIB_", --data, 4))
+		{
+			return false;
+		}
+	}
+
+	/* Signature */
+	data -= SigLen;
+	if(0 != strcmp(Signature, (char*)data))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 static bool InsertAsm(RomFile* rom, const char* asmPath, List* libs, List* smwlibs, List* defineList)
 {
 	jmp_buf  e;
@@ -303,5 +334,27 @@ bool InsertLibraries(RomFile* rom, const char* dirname, List* libs, List* smwlib
 
 	delete_List(&asmList);
 	DestroySearchPath(dirs);
+	return true;
+}
+
+bool UninstallLibs(RomFile* rom)
+{
+	uint32 sa = 0x108000;
+
+	while(sa != ROMADDRESS_NULL)
+	{
+		sa = rom->RatsSearch(rom, sa, IsUnkoLibData);
+		if(ROMADDRESS_NULL != sa)
+		{
+			putdebug("Uninstall lib at $%06x", sa);
+			if(false == rom->RatsClean(rom, sa))
+			{
+				putdebug("Libcode uninstall failed at 0x%06x", sa);
+				return false;
+			}
+			putinfo("Libcode uninstalled from 0x%06x", sa);
+		}
+	}
+
 	return true;
 }

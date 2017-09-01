@@ -4,6 +4,7 @@
 -Iinclude
 -Iinclude/common
 -Iinclude/asar
+-Iinclude/smw
 -Iinclude/unko
 -Ibolib/include
 -Ibolib/include/common

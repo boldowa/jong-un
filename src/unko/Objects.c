@@ -1,51 +1,78 @@
 /**
  * Objects.c
  */
-#include "types.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+#include "common/types.h"
 #if isWindows
 #  include <windows.h>
 #else
 #  include <sys/stat.h>
 #endif
-#include <ctype.h>
 #include <setjmp.h>
-#include "Signature.h"
-#include "puts.h"
-#include "Str.h"
-#include "List.h"
-#include "Enviroment.h"
-#include "ReadWrite.h"
-#include "FilePath.h"
-#include "File.h"
-#include "RomFile.h"
-#include "TextFile.h"
-#include "ParseList.h"
-#include "SearchPath.h"
-#include "Funex.h"
-#include "asardll.h"
-#include "Asarctl.h"
-#include "Libraries.h"
-#include "Objects.h"
+#include "common/puts.h"
+#include "common/Str.h"
+#include "common/Funex.h"
+#include "common/List.h"
+#include "common/Enviroment.h"
+#include "common/ReadWrite.h"
+#include "unko/Signature.h"
+#include "file/FilePath.h"
+#include "file/File.h"
+#include "file/RomFile.h"
+#include "file/TextFile.h"
+#include "unko/ParseList.h"
+#include "unko/SearchPath.h"
+#include "asar/asardll.h"
+#include "unko/Asarctl.h"
+#include "unko/Libraries.h"
+#include "unko/ParseObjPuts.h"
+#include "unko/Objects.h"
 
-enum {
-	Match_Export = 0,
-	Match_Visible,
-	Match_XSize,
-	Match_YSize,
-	Match_HorzElongationAmount,
-	Match_VertElongationAmount,
-	UnmatchPrint
+/**
+ * InsertGroup
+ */
+static InsertListRangeStruct range1[] = {
+	{0x29, 0x2c, NrmObjEmpty},
+	{0x2e, 0x2f, NrmObjEmpty},
+	{-1, -1}
 };
+static InsertListRangeStruct range2[] = {
+	{0x29, 0x2c, NrmObjEmpty},
+	{0x2e, 0x33, NrmObjEmpty},
+	{-1, -1}
+};
+static InsertListRangeStruct range3[] = {
+	{0x29, 0x2c, NrmObjEmpty},
+	{0x2e, 0x31, NrmObjEmpty},
+	{-1, -1}
+};
+static InsertListRangeStruct range4[] = {
+	{0x29, 0x2c, NrmObjEmpty},
+	{0x2e, 0x33, NrmObjEmpty},
+	{-1, -1}
+};
+static InsertListRangeStruct range5[] = {
+	{0x29, 0x2c, NrmObjEmpty},
+	{-1, -1}
+};
+static InsertListRangeStruct range6[] = {
+	{0x02, 0x0f, 0x000000},
+	{0x98, 0xff, 0x0da6d1},
+	{-1, -1}
+};
+static InsertListRangeStruct range7[] = {
+	{0x00, 0xff, 0x0da8c3},
+	{-1, -1}
+};
+static InsertListGroupStruct Grps[] = {
+	{ 0x0da452, range1 }, /* Normal */
+	{ 0x0dc197, range2 }, /* Castle */
+	{ 0x0dcd97, range3 }, /* Rope */
+	{ 0x0dd997, range4 }, /* Underground */
+	{ 0x0de897, range5 }, /* Ghosthouse */
+	{ 0x0da10f, range6 }, /* ExObj */
+	{ ROMADDRESS_NULL, range7 }, /* 2D */
 
-enum {
-	Match_True = 0,
-	Match_False,
-	Match_On,
-	Match_Off,
-	UnmatchBool
+	{ ROMADDRESS_NULL, NULL }
 };
 
 #define ExportDeclarator		"export"
@@ -121,225 +148,38 @@ static bool MatchMainLabel(const char* line)
 	return false;
 }
 
-static bool MatchExportValue(const char* str, char* declaration, void* data)
-{
-	size_t len;
-	size_t i;
-	size_t st;
-
-	int hex = 0;
-	LabelDataStruct *lab = (LabelDataStruct*)data;
-
-	len = strlen(str);
-	i = 0;
-
-	if('$' == str[i]) i++;
-	st = i;
-
-	/* check valid hex */
-	for(; i<len; i++)
-	{
-		if(false == ishex(str[i]))
-		{
-			break;
-		}
-	}
-	SkipSpaces(str, &i, len);
-	if(i != len)
-	{
-		putwarn("Invalid export syntax. This export is ignored.");
-		free(declaration);
-		return false;
-	}
-
-	/* get hex val */
-	i = st;
-	for(; i<len; i++)
-	{
-		if(false == ishex(str[i])) break;
-		hex <<= 4;
-		hex = hex + atoh(str[i]);
-	}
-	if(hex >= 0x1000000)
-	{
-		putwarn("The export address is too big. This export is ignored.");
-		free(declaration);
-		return false;
-	}
-
-	lab->name = declaration;
-	lab->loc = hex;
-
-	return true;
-}
-
-static bool MatchString(const char* str, void* data)
-{
-	size_t len;
-	size_t i;
-	size_t cmplen;
-	const char* cmp = (const char*)data;
-
-	len = strlen(str);
-	cmplen = strlen(cmp);
-
-	if(0 != strncasecmp(cmp, str, cmplen)) return false;
-
-	
-	i = cmplen;
-	SkipSpaces(str, &i, len);
-	if(i != len) return false;
-
-	return true;
-}
-static bool MatchBooleanValue(const char* str, char* declaration, void* data)
-{
-	bool* b = (bool*)data;
-
-	FunexStruct fs[] = {
-		{ MatchString, "true" },
-		{ MatchString, "false" },
-		{ MatchString, "on" },
-		{ MatchString, "off" },
-		/*----------------*/
-		{ NULL, NULL }
-	};
-
-	free(declaration);	/* I don't need it */
-
-	switch(FunexMatch(str, fs))
-	{
-		case Match_True:
-		case Match_On:
-			(*b) = true;
-			return true;
-
-		case Match_False:
-		case Match_Off:
-			(*b) = false;
-			return false;
-
-		default:
-			break;
-	}
-	return false;
-}
-
-static bool MatchIntegerValue(const char* str, char* declaration, void* data)
-{
-	size_t i;
-	size_t ed;
-
-	int* val = (int*)data;
-	
-	free(declaration);	/* I don't need it */
-	ed = strlen(str) - 1;
-	SkipSpacesRev(str, &ed);
-
-	i = 0;
-	for(; i<ed; i++)
-	{
-		if(false == isdigit(str[i]))
-		{
-			break;
-		}
-	}
-	if(ed != i) return false;
-
-	(*val) = atoi(str);
-	return true;
-}
-
-static bool MatchPrintCommon(const char* str, void* data,
-		const char* searchStr, bool (*valueAnalyzer)(const char*, char*, void*))
-{
-	size_t len;
-	size_t i;
-	char* declaration;
-	size_t declen;
-	size_t st;
-
-	if(NULL == valueAnalyzer)
-	{
-		putfatal("%s: Program error: invalid program, valueAnalyzer is NULL..", __func__);
-		return false;
-	}
-	if(NULL == data)
-	{
-		putfatal("%s: Program error: data address is not assigned.", __func__);
-		return false;
-	}
-
-	len = strlen(str);
-	i = 0;
-
-	SkipSpaces(str, &i, len);
-
-	/* match */
-	if(0 != strncasecmp(searchStr, &str[i], strlen(searchStr)))
-	{
-		return false;
-	}
-	i += strlen(searchStr);
-	/* fail if str doesn't have space after searchstr. */
-	if(false == IsSpace(str[i]))
-	{
-		return false;
-	}
-
-	SkipSpaces(str, &i, len);
-	st = i;
-
-	/* read until '=' */
-	SkipUntilChar(str, &i, '=', len);
-	if(i == len) return false;
-
-	declen = i - st;
-	declaration = calloc(declen+1, sizeof(char));
-	if(NULL == declaration)
-	{
-		putfatal("%s: memory error.", __func__);
-		return false;
-	}
-	strncpy_s(declaration, declen+1, &str[st], declen);
-	CutOffTailSpaces(declaration);
-
-	/* skip a char */
-	i++;
-
-	SkipSpaces(str, &i, len);
-	if(i == len)
-	{
-		free(declaration);
-		return false;
-	}
-
-	return valueAnalyzer(&str[i], declaration, data);
-}
-
+enum {
+	Match_Export = 0,
+	Match_Visible,
+	Match_XSize,
+	Match_YSize,
+	Match_HorzElongationAmount,
+	Match_VertElongationAmount,
+	UnmatchPrint
+};
 static bool MatchExport(const char* line, void* data)
 {
-	return MatchPrintCommon(line, data, ExportDeclarator, MatchExportValue);
+	return ParseObjPuts(line, data, ExportDeclarator, MatchExportValue);
 }
 static bool MatchVisible(const char* line, void* data)
 {
-	return MatchPrintCommon(line, data, VisibleDeclarator, MatchBooleanValue);
+	return ParseObjPuts(line, data, VisibleDeclarator, MatchBooleanValue);
 }
 static bool MatchXSize(const char* line, void* data)
 {
-	return MatchPrintCommon(line, data, XSizeDeclarator, MatchIntegerValue);
+	return ParseObjPuts(line, data, XSizeDeclarator, MatchIntegerValue);
 }
 static bool MatchYSize(const char* line, void* data)
 {
-	return MatchPrintCommon(line, data, YSizeDeclarator, MatchIntegerValue);
+	return ParseObjPuts(line, data, YSizeDeclarator, MatchIntegerValue);
 }
 static bool MatchHorzElongationAmount(const char* line, void* data)
 {
-	return MatchPrintCommon(line, data, HorzElongationAmount, MatchIntegerValue);
+	return ParseObjPuts(line, data, HorzElongationAmount, MatchIntegerValue);
 }
 static bool MatchVertElongationAmount(const char* line, void* data)
 {
-	return MatchPrintCommon(line, data, VertElongationAmount, MatchIntegerValue);
+	return ParseObjPuts(line, data, VertElongationAmount, MatchIntegerValue);
 }
 
 static bool InsertedCheck(const void* sval, const void* lval)
@@ -631,7 +471,7 @@ static bool InsertAsm(
 	return true;
 }
 
-uint32 Get2DObjTblAdr(RomFile* rom, const uint32 adrMain)
+static uint32 Get2DObjTblAdr(RomFile* rom, const uint32 adrMain)
 {
 	uint8* p;
 	uint16 szMain;
@@ -667,7 +507,6 @@ bool InsertObjects(
 		const char* dirname,
 		const uint32 adrMain,
 		const InsertListStruct* lst,
-		const InsertListGroupStruct* Grps,
 		List* libs,
 		int* cnt,
 		List* defineList)
@@ -781,5 +620,115 @@ bool InsertObjects(
 
 	DestroySearchPath(dirs);
 	delete_List(&insList);
+	return true;
+}
+
+static bool SearchUInt32(const void* sval, const void* lval)
+{
+	uint32* v1 = (uint32*)sval;	/* search value */
+	uint32* v2 = (uint32*)lval;	/* list's value */
+
+	return (*v1 == *v2);
+}
+
+bool UninstallObjects(RomFile* rom, const uint32 adrMain)
+{
+	int i,j;
+	uint32 sa;
+	uint32 szMain;
+	InsertListRangeStruct* rs;
+	uint8* tbl;
+
+	/* uninstall list */
+	uint32* uniVal;
+	List* uniList;
+
+	uniList = new_List(NULL, free);
+	if(NULL == uniList)
+	{
+		putdebug("%s : memory error.", __func__);
+		return false;
+	}
+
+	for(i=0; NULL != Grps[i].ranges; i++)
+	{
+		if(ROMADDRESS_NULL == Grps[i].sa)
+		{
+			/* Get 2D table */
+			tbl = rom->GetSnesPtr(rom, adrMain);
+			szMain = read16(&tbl[4]);
+			/* move to MAIN sig */
+			tbl = tbl + (int)szMain + 9 - 5;
+			/* address fix */
+			if(0 != memcmp("MAIN", tbl, 4))
+			{
+				if(0 != memcmp("MAIN", --tbl, 4))
+				{
+					putfatal("%s: Obj2D table is missing...", __func__);
+					delete_List(&uniList);
+					return false;
+				}
+			}
+			tbl -= (2 + SigLen + 0x300);
+		}
+		else
+		{
+			tbl = rom->GetSnesPtr(rom, Grps[i].sa);
+		}
+		for(rs = Grps[i].ranges; 0 < rs->max; rs++)
+		{
+			for(j = rs->min; j <= rs->max; j++)
+			{
+				int ti = j*3;
+
+				sa = read24(&tbl[ti]);
+
+				/* check previous deletes */
+				if(NULL != uniList->search(uniList, &sa, SearchUInt32))
+				{
+					/* found */
+					write24(&tbl[ti], rs->empty);
+					putinfo("Object %s-%02x pointer restored", GrpName[i], j);
+					continue;
+				}
+
+				if(rs->empty == sa)
+				{
+					putdebug("  skip %s-%02x", GrpName[i], j);
+					continue;
+				}
+				if(0x108000 > (sa & 0x7fffff))
+				{
+					putfatal("Program error: Invalid range : grp=%s, obj=%02x sa = $%06x", GrpName[i], j, sa);
+					delete_List(&uniList);
+					return false;
+				}
+
+				/* uninstall data */
+				if(false == rom->RatsClean(rom, sa-8))
+				{
+					putdebug("%s : Rats_Clean failed. sa = $%06x, object = %s-%02x", __func__, sa, GrpName[i],j);
+					delete_List(&uniList);
+					return false;
+				}
+
+				/* add delete list */
+				uniVal = calloc(1, sizeof(uint32));
+				if(NULL == uniVal)
+				{
+					putdebug("%s : memory error.", __func__);
+					return false;
+				}
+				*uniVal = sa;
+				uniList->push(uniList, uniVal);
+
+				/* rom address fix */
+				write24(&tbl[ti], rs->empty);
+				putinfo("Object %s-%02x is uninstalled from $%06x", GrpName[i], j, sa);
+			} /* range min-max loop */
+		} /* ranges loop */
+	} /* Grp loop */
+
+	delete_List(&uniList);
 	return true;
 }

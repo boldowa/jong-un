@@ -1,9 +1,9 @@
+/**
+ * Objects.h
+ */
 #pragma once
-/**********************************************************
- *
- * Objects is responsible for ...
- *
- **********************************************************/
+
+#define NrmObjEmpty		0x0db3e3
 
 typedef struct ObjectProperty {
 	bool	visible;	/* Visible */
@@ -13,5 +13,6 @@ typedef struct ObjectProperty {
 	int	vertea;		/* VertElongationAmount */
 } ObjectProperty;
 
-bool InsertObjects(RomFile*, const char*, const uint32, const InsertListStruct*, const InsertListGroupStruct*, List*, int*, List*);
+bool InsertObjects(RomFile*, const char*, const uint32, const InsertListStruct*, List*, int*, List*);
+bool UninstallObjects(RomFile*, const uint32);
 

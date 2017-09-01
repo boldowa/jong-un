@@ -38,7 +38,8 @@ INCLUDE_DIRS =\
   include \
   include/* \
   bolib/include \
-  bolib/include/* \
+  bolib/include/common \
+  bolib/include/file \
   $(CPPUTEST_HOME)/include/ \
   $(CPPUTEST_HOME)/include/Platforms/Gcc\
   mocks

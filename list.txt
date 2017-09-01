@@ -98,7 +98,7 @@ ff
 
 // Object 2D (LM Ext object) -
 [Object2D]
-00	pipe/VertScrPipe.asm
+00	pipe/VertScrPipeBody.asm
 01	AnyCondExecuter.asm
 // ...
 ff	
