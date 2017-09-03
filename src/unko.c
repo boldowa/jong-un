@@ -241,7 +241,7 @@ static bool UninstallUnko(RomFile* rom, const uint32 adrMain)
 			RomClean_v0100(rom);
 			break;
 		default:
-			putfatal("%s: clean code is nothing for code ver %04x...", __func__, codeVer);
+			putfatal("%s: clean code is nothing for code ver 0x%04x...", __func__, codeVer);
 			return false;
 	}
 

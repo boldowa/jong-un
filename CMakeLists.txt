@@ -149,7 +149,7 @@ if(UNIX)
 	set(TGTPATH "${CMAKE_CURRENT_SOURCE_DIR}/release")
 	add_custom_target(r cp unko ${TGTPATH}/
 		COMMAND cp ${CUR}/doc/readme.txt ${TGTPATH}/
-#		COMMAND cp ${CUR}/doc/readme_jp.txt ${TGTPATH}/
+		COMMAND cp ${CUR}/doc/readme_jp.txt ${TGTPATH}/
 		COMMAND cp ${CUR}/doc/LICENSE ${TGTPATH}/
 		COMMAND cp ${CUR}/list.txt ${TGTPATH}/
 		COMMAND rm -rf ${TGTPATH}/asar_licenses

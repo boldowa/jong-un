@@ -3,7 +3,7 @@
 | ----------------------------------------------           |
 |              ... ~~he is very fond of standing out~~ ... |
 |                                                          |
-|   - ver. 1.XX                                            |
+|   - ver. 1.30                                            |
 |                                                          |
 |   Repository : https://github.com/boldowa/unko/          |
 |   Web        : https://boldowa.github.io/unko/           |
@@ -38,7 +38,7 @@
 |                            Github issue : #2,  #3,  #4,  |
 |                                           #5,  #6,  #10  |
 |                                                          |
-|     09-02-2017 [v1.XX] : Improved library function       |
+|     09-02-2017 [v1.30] : Improved library function       |
 |                          and add object variable         |
 |                            Github issue : #9             |
 |                                                          |
@@ -105,7 +105,7 @@
   +-- readme.txt                       ... It's file that just you are reading.
   +-- LICENSE                          ... license file
   |
-  +-- sources                          ... Unko source files
+  +-- sources.tar.gz                   ... Unko source files
 
 
 [Command-line option]
