@@ -1,16 +1,17 @@
-#include "types.h"
-#include <string.h>
-#ifdef WIN32
+/**
+ * Enviroment.c
+ */
+#include "common/types.h"
+#if isWindows
 #  include <windows.h>
-#endif
-#ifdef UNIX
+#elif isUnix
 #  ifndef __USE_XOPEN2K
 #    define __USE_XOPEN2K
 #  endif
 #  include <unistd.h>
 #endif
-#include "FilePath.h"
-#include "Enviroment.h"
+#include "file/FilePath.h"
+#include "common/Enviroment.h"
 
 EnviromentStruct Enviroment;
 
@@ -30,7 +31,7 @@ void SetSystemEnviroment()
 	}
 
 	/* Set exe dir */
-#if defined(WIN32)
+#if isWindows
 	/* Get absolute path of exe */
 	GetModuleFileName(NULL, tmp, MAX_PATH-1);
 	{
@@ -49,7 +50,7 @@ void SetSystemEnviroment()
 		((char*)Enviroment.CurDir)[len] = '\\';
 	}
 
-#elif defined(UNIX)
+#elif isUnix
 	/* Get absolute path of exe */
 	readlink("/proc/self/exe", tmp, MAX_PATH-1);
 	{
@@ -93,9 +94,9 @@ void SetSearchPath()
 		Enviroment.SearchPath[i] = Enviroment.ExeDir;
 	}
 
-#if defined(UNIX)
+#if isUnix
 	Enviroment.SearchPath[0] = "./";
-#elif defined(WIN32)
+#elif isWindows
 	Enviroment.SearchPath[0] = ".\\";
 #endif
 

@@ -1,14 +1,24 @@
-#include "types.h"
-#include <stdlib.h>
-#include <string.h>
-#include "puts.h"
-#include "FilePath.h"
-#include "File.h"
-#include "RomFile.h"
-#include "asardll.h"
-#include "Asarctl.h"
+/**
+ * Asarctl.h
+ */
+#include "common/types.h"
+#include <assert.h>
+#include "common/puts.h"
+#include "file/File.h"
+#include "file/RomFile.h"
+#include "asar/asardll.h"
+#include "unko/Asarctl.h"
 
 RomMapStruct rommap;
+
+void DeleteLabelDataStruct(void* data)
+{
+	LabelDataStruct* lab = (LabelDataStruct*)data;
+
+	assert(lab);
+	free(lab->name);
+	free(lab);
+}
 
 void putasarerr()
 {
@@ -24,6 +34,15 @@ void putasarerr()
 		puterror("%s", err[ctr].fullerrdata);
 	}
 
+}
+
+void DeleteLibraryList(void* data)
+{
+	LabelDataStruct* lab = (LabelDataStruct*)data;
+
+	assert(lab);
+	free(lab->name);
+	free(lab);
 }
 
 void getmapmode(RomFile* rom)

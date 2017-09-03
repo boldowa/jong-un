@@ -5,7 +5,7 @@ CPPUTEST_USE_GCOV = Y
 CPPUTEST_EXE_FLAGS = -c
 
 # Set asar Flags
-CPPUTEST_LDFLAGS = -L. -Lbolib/build -lbolib -lasar -ldl
+CPPUTEST_LDFLAGS = -L. -Lbolib/lib -lbolib -lasar -ldl
 
 #---- Outputs ----#
 COMPONENT_NAME = unko

@@ -13,6 +13,6 @@ typedef struct ObjectProperty {
 	int	vertea;		/* VertElongationAmount */
 } ObjectProperty;
 
-bool InsertObjects(RomFile*, const char*, const uint32, const InsertListStruct*, List*, int*, List*);
+bool InsertObjects(RomFile*, const char*, const uint32, const InsertListStruct*, List*, LibsInsertMan*, int*, int*, List*);
 bool UninstallObjects(RomFile*, const uint32);
 

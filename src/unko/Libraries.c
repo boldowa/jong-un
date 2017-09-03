@@ -1,27 +1,20 @@
-#include "types.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+/**
+ * Libraries.c
+ */
+#include "common/types.h"
 #include <setjmp.h>
-#if !defined(WIN32)
-#  include <dirent.h>
-#else
-#  include <windows.h>
-#endif
-#include "Signature.h"
-#include "puts.h"
-#include "Str.h"
-#include "List.h"
-#include "Enviroment.h"
-#include "FilePath.h"
-#include "File.h"
-#include "RomFile.h"
-#include "TextFile.h"
-#include "ParseList.h"
-#include "SearchPath.h"
-#include "asardll.h"
-#include "Asarctl.h"
-#include "Libraries.h"
+#include "unko/Signature.h"
+#include "common/puts.h"
+#include "common/Str.h"
+#include "common/List.h"
+#include "common/Enviroment.h"
+#include "file/File.h"
+#include "file/RomFile.h"
+#include "file/TextFile.h"
+#include "asar/asardll.h"
+#include "unko/Asarctl.h"
+#include "unko/LibsInsertMan.h"
+#include "unko/Libraries.h"
 
 static bool IsUnkoLibData(const uint8* data, const uint32 len)
 {
@@ -54,7 +47,13 @@ static bool IsUnkoLibData(const uint8* data, const uint32 len)
 	return true;
 }
 
-static bool InsertAsm(RomFile* rom, const char* asmPath, List* libs, List* smwlibs, List* defineList)
+static bool InsertAsm(
+		RomFile* rom,
+		const char* path,
+		List* smwlibs,
+		List* libs,
+		List* defineList
+	      )
 {
 	jmp_buf  e;
 	TextFile* libAsm;
@@ -73,7 +72,7 @@ static bool InsertAsm(RomFile* rom, const char* asmPath, List* libs, List* smwli
 	const char* const * asarprints;
 	int printcnt;
 
-	libAsm = new_TextFile(asmPath);
+	libAsm = new_TextFile(path);
 	tmpAsm = new_TextFile(TempAsmName);
 
 	if(0 == setjmp(e))
@@ -130,25 +129,27 @@ static bool InsertAsm(RomFile* rom, const char* asmPath, List* libs, List* smwli
 		libAsm->super.Close(&libAsm->super);
 
 		/* patch */
+		putdebug("asar_pattch \"%s\"", tmpAsm->super.path_get(&tmpAsm->super));
 		asar_reset();
 		result = asar_patch(
 				tmpAsm->super.path_get(&tmpAsm->super),
 				(char*)rom->GetSnesPtr(rom, 0x8000),
 				(int)rom->size_get(rom),
 				&romlen);
+		putdebug("result: %d", (int)result);
 		/* print asm puts */
 		asarprints = asar_getprints(&printcnt);
 		{
 			int i;
 			for(i=0; i<printcnt; i++)
 			{
-				putinfo("%s: %s", libAsm->super.path_get(&libAsm->super), asarprints[i]);
+				putinfo("  %s: %s", libAsm->super.path_get(&libAsm->super), asarprints[i]);
 			}
 		}
 		if(false == result)
 		{
 			putasarerr();
-			puterror("Failed to insert \"%s\"", libAsm->super.path_get(&libAsm->super));
+			puterror("  Failed to insert \"%s\"", libAsm->super.path_get(&libAsm->super));
 			longjmp(e, 1);
 		}
 
@@ -193,149 +194,47 @@ static bool InsertAsm(RomFile* rom, const char* asmPath, List* libs, List* smwli
 		return false;
 	}
 
-	putinfo("%s installed.", libAsm->super.path_get(&libAsm->super));
+	putinfo("  %s installed.", libAsm->super.path_get(&libAsm->super));
 	delete_TextFile(&libAsm);
 	delete_TextFile(&tmpAsm);
 	remove(TempAsmName);
 	return true;
-
 }
 
-void SearchLibraries(List* asmList, char * const * dirs)
+bool InsertLibraries(
+		RomFile* rom,
+		List* labels,
+		LibsInsertMan* libsInsMan,
+		List* smwlibs,
+		List* libs,
+		int* libscnt,
+		List* defines)
 {
-	int i;
-	FilePath* fp;
-#if !defined(WIN32)
-	char* ext;
-	DIR *dir;
-	struct dirent *dp;
+	Iterator *itLab;
+	LibraryFileItem* fileItem;
+	const char* label;
 
-	for(i=0; NULL != dirs[i]; i++)
+	for(itLab = labels->begin(labels); NULL != itLab; itLab = itLab->next(itLab))
 	{
-		dir = opendir(dirs[i]);
-		if(NULL == dir)
+		label = (const char*)itLab->data(itLab);
+		fileItem = libsInsMan->searchLibrary(libsInsMan, label);
+
+		/* Already installed check */
+		if(fileItem->isInserted)
 		{
 			continue;
 		}
 
-		for(dp = readdir(dir); NULL != dp; dp = readdir(dir))
-		{
-			fp = new_FilePath(Str_concat(dirs[i], dp->d_name));
-			ext = Str_copy(fp->ext_get(fp));
-			Str_tolower(ext);
-
-			if(0 != strcmp(".asm", ext))
-			{
-				free(ext);
-				delete_FilePath(&fp);
-				continue;
-			}
-			asmList->push(asmList, fp);
-		}
-	}
-#else
-	HANDLE hFind;
-	WIN32_FIND_DATA win32fd;
-	char* path = NULL;
-
-	for(i=0; NULL != dirs[i]; i++)
-	{
-		path = Str_concat(dirs[i], "*.asm");
-
-		hFind = FindFirstFile(path, &win32fd);
-		if(INVALID_HANDLE_VALUE == hFind)
-		{
-			free(path);
-			continue;
-		}
-
-		do{
-			fp = new_FilePath(Str_concat(dirs[i], win32fd.cFileName));
-			asmList->push(asmList, fp);
-		} while(FindNextFile(hFind, &win32fd));
-		free(path);
-	}
-#endif
-}
-
-static void deleteAsmList(void* d)
-{
-	delete_FilePath((FilePath**)&d);
-}
-
-bool InsertLibraries(RomFile* rom, const char* dirname, List* libs, List* smwlibs, int* cnt, List* defineList)
-{
-	List* asmList;
-	FilePath* asmPath;
-	char* dirs[SearchPathNums];
-
-	(*cnt) = 0;
-
-	{
-		size_t len;
-		char* path;
-
-		len = strlen(dirname);
-		path = calloc(len+2, sizeof(char));
-		if(NULL == path)
-		{
-			putfatal("%s: memory error.", __func__);
-			return false;
-		}
-		strcpy_s(path, len+2, dirname);
-#if defined(UNIX)
-		if('/' != path[len-1])
-		{
-			path[len] = '/';
-			path[len+1] = '\0';
-		}
-#elif defined(WIN32)
-		if(('\\' != path[len-1]) || ('/' != path[len-1]))
-		{
-			path[len] = '\\';
-			path[len+1] = '\0';
-		}
-#else
-#error "This system isn't supported."
-#endif
-		if(false == ConstructSearchPath(dirs, path))
+		putinfo("  Install %s ...", fileItem->libpath);
+		if(false == InsertAsm(rom, fileItem->libpath, smwlibs, libs, defines))
 		{
 			return false;
 		}
-		free(path);
+		(*libscnt)++;
 	}
-
-
-	asmList = new_List(NULL, deleteAsmList);
-	if(NULL == asmList)
-	{
-		putfatal("%s: memory error", __func__);
-		DestroySearchPath(dirs);
-		return false;
-	}
-
-	/* search libraries */
-	SearchLibraries(asmList, dirs);
-
-	/* Install libraries */
-	asmPath = (FilePath*)asmList->pop(asmList);
-	while(NULL != asmPath)
-	{
-		if(false == InsertAsm(rom, asmPath->path_get(asmPath), libs, smwlibs, defineList))
-		{
-			DestroySearchPath(dirs);
-			return false;
-		}
-
-		(*cnt)++;
-		delete_FilePath(&asmPath);
-		asmPath = (FilePath*)asmList->pop(asmList);
-	}
-
-	delete_List(&asmList);
-	DestroySearchPath(dirs);
 	return true;
 }
+
 
 bool UninstallLibs(RomFile* rom)
 {

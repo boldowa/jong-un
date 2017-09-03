@@ -1,21 +1,17 @@
-#include "types.h"
+#include "common/types.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#if isWindows
-#  include <windows.h>
-#else
-#  include <sys/stat.h>
-#endif
 #include <setjmp.h>
-#include "Enviroment.h"
-#include "puts.h"
-#include "Str.h"
-#include "FilePath.h"
-#include "File.h"
-#include "TextFile.h"
-#include "Funex.h"
-#include "ParseList.h"
+#include "common/Enviroment.h"
+#include "common/puts.h"
+#include "common/Str.h"
+#include "common/Funex.h"
+#include "file/FilePath.h"
+#include "file/File.h"
+#include "file/TextFile.h"
+#include "file/libfile.h"
+#include "unko/ParseList.h"
 
 typedef struct ListItemSt {
 	int inx;
@@ -172,11 +168,6 @@ static void RemoveComment(char* line)
 
 bool ParseList(const char* listName, InsertList list)
 {
-#if isWindows
-	HANDLE hFile;
-#else
-	struct stat sts;
-#endif
 	jmp_buf e;
 	char* path = NULL;
 	char* lstPath = NULL;
@@ -199,21 +190,8 @@ bool ParseList(const char* listName, InsertList list)
 	{
 		free(path);
 		path = Str_concat(Enviroment.SearchPath[i], listName);
-#if isWindows
-		hFile = CreateFile(
-				path,
-				GENERIC_READ, FILE_SHARE_READ,
-				NULL,
-				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-				NULL
-				);
-		if(INVALID_HANDLE_VALUE != hFile)
+		if(fexists(path))
 		{
-			CloseHandle(hFile);
-#else
-		if(0 == stat(path, &sts) && S_ISREG(sts.st_mode))
-		{
-#endif
 			lstPath = path;
 		}
 	}

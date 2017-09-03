@@ -6,15 +6,12 @@
 #include "common/types.h"
 #include <assert.h>
 #include <setjmp.h>
-#include <ctype.h>
 #include "common/Str.h"
-#include "common/Funex.h"
 #include "common/List.h"
 #include "common/puts.h"
 #include "common/Option.h"
 #include "common/Enviroment.h"
 #include "common/ReadWrite.h"
-#include "file/FilePath.h"
 #include "file/File.h"
 #include "file/RomFile.h"
 #include "file/TextFile.h"
@@ -24,6 +21,7 @@
 #include "unko/Signature.h"
 #include "unko/ParseCmdDefs.h"
 #include "unko/ParseList.h"
+#include "unko/LibsInsertMan.h"
 #include "unko/Objects.h"
 #include "unko/Libraries.h"
 #include "unko/Asarctl.h"
@@ -64,15 +62,6 @@ typedef struct OptionValue {
 
 typedef void (*InsertAsmInjection_t)(TextFile*);
 
-
-static void DeleteLibraryList(void* data)
-{
-	LabelDataStruct* lab = (LabelDataStruct*)data;
-
-	assert(lab);
-	free(lab->name);
-	free(lab);
-}
 
 static void InitList(InsertListStruct* lst)
 {
@@ -408,13 +397,12 @@ static LabelDataStruct* CopyLibs(const struct labeldata* srclab)
 	return lab;
 }
 
-static bool GenerateSMWLibs(RomFile* rom, List* libs, List* smwlibs)
+static bool GenerateSMWLibs(RomFile* rom, List* smwlibs)
 {
 	char* asmPath;
 	int i;
 	int labcnt;
 	const struct labeldata* labels;
-	LabelDataStruct* lab;
 	LabelDataStruct* smwlab;
 	bool res;
 
@@ -430,7 +418,11 @@ static bool GenerateSMWLibs(RomFile* rom, List* libs, List* smwlibs)
 	labels = asar_getalllabels(&labcnt);
 	for(i=0; i<labcnt; i++)
 	{
-		if(0 == strncmp(":pos_", labels[i].name, 5))	/* + - labs */
+		if(0 == strncmp(":pos_", labels[i].name, 5))	/* + labs */
+		{
+			continue;
+		}
+		if(0 == strncmp(":neg_", labels[i].name, 5))	/* - labs */
 		{
 			continue;
 		}
@@ -439,16 +431,13 @@ static bool GenerateSMWLibs(RomFile* rom, List* libs, List* smwlibs)
 			continue;
 		}
 
-		lab = CopyLibs(&labels[i]);
 		smwlab = CopyLibs(&labels[i]);
-		if((NULL == lab) || (NULL == smwlab))
+		if(NULL == smwlab)
 		{
 			putfatal("%s : memory error", __func__);
 			free(smwlab);
-			free(lab);
 			return false;
 		}
-		libs->push(libs,lab);
 		smwlibs->push(smwlibs,smwlab);
 	}
 
@@ -527,8 +516,8 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 	uint32 adrMain;
 
 	InsertListStruct lst;
-	List* libs;
 	List* smwlibs;
+	LibsInsertMan *libsInsMan;
 	int libscnt;
 	int objscnt;
 
@@ -559,12 +548,14 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 	}
 
 	/* Generate libraries list */
-	smwlibs = new_List(NULL, DeleteLibraryList);
-	libs = new_List(NULL, DeleteLibraryList);
+	smwlibs = new_List(NULL, DeleteLabelDataStruct);
+	libsInsMan = new_LibsInsertMan();
+
+	/* Insert */
 	result = false;
 	if(0 == setjmp(e))
 	{
-		if((NULL == libs) || (NULL == smwlibs))
+		if((NULL == libsInsMan) || (NULL == smwlibs))
 		{
 			putfatal("Libs list create failed(memory error).");
 			longjmp(e, 1);
@@ -572,34 +563,36 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 
 		/* Set-up smw libraries */
 		putinfo("--- Generating SMWLib database...");
-		if(false == GenerateSMWLibs(rom, libs, smwlibs))
+		if(false == GenerateSMWLibs(rom, smwlibs))
 		{
 			puterror("SMWLibs generate failed.");
 			longjmp(e, 1);
 		}
-		/* Insert libraries */
-		putinfo("--- Inserting libraries...");
-		if(false == InsertLibraries(rom, opt->libsDirName, libs, smwlibs, &libscnt, opt->defineList))
-		{
-			puterror("Libraries insert failed.");
-			longjmp(e, 1);
-		}
-		if(0 == libscnt)
+
+		/* build library database */
+		putinfo("--- Searching libraries...");
+		libsInsMan->buildData(libsInsMan, opt->libsDirName);
+		if(0 == libsInsMan->filesCount(libsInsMan))
 		{
 			putinfo("Library is nothing.");
+		}
+		else
+		{
+			putinfo("Library: %d files", (int)libsInsMan->filesCount(libsInsMan));
+			putinfo("         %d labels", (int)libsInsMan->labelsCount(libsInsMan));
 		}
 
 		/* search main data */
 		adrMain = rom->RatsSearch(rom, 0x108000, IsUnkoMainData);
 		if(ROMADDRESS_NULL == adrMain)
 		{
-			puterror("Maincode search failed.");
+			puterror("Main-code search failed.");
 			longjmp(e, 1);
 		}
 
 		/* Insert objects */
 		putinfo("--- Inserting objects...");
-		if(false == InsertObjects(rom, opt->objsDirName, adrMain, &lst, libs, &objscnt, opt->defineList))
+		if(false == InsertObjects(rom, opt->objsDirName, adrMain, &lst, smwlibs, libsInsMan, &libscnt, &objscnt, opt->defineList))
 		{
 			puterror("Object insert failed.");
 			longjmp(e, 1);
@@ -619,8 +612,8 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 	}
 
 	/* delete libs list */
-	delete_List(&libs);
 	delete_List(&smwlibs);
+	delete_LibsInsertMan(&libsInsMan);
 	ReleaseList(&lst);
 
 	return result;

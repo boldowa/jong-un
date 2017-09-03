@@ -3,6 +3,14 @@
  */
 #pragma once
 
-bool InsertLibraries(RomFile*, const char*, List*, List*, int*, List*);
+bool InsertLibraries(
+		RomFile*,
+		List*,
+		LibsInsertMan*,
+		List*,
+		List*,
+		int*,
+		List*);
+
 bool UninstallLibs(RomFile*);
 

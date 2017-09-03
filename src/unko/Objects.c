@@ -2,12 +2,8 @@
  * Objects.c
  */
 #include "common/types.h"
-#if isWindows
-#  include <windows.h>
-#else
-#  include <sys/stat.h>
-#endif
 #include <setjmp.h>
+#include <assert.h>
 #include "common/puts.h"
 #include "common/Str.h"
 #include "common/Funex.h"
@@ -19,10 +15,12 @@
 #include "file/File.h"
 #include "file/RomFile.h"
 #include "file/TextFile.h"
+#include "file/libfile.h"
 #include "unko/ParseList.h"
 #include "unko/SearchPath.h"
 #include "asar/asardll.h"
 #include "unko/Asarctl.h"
+#include "unko/LibsInsertMan.h"
 #include "unko/Libraries.h"
 #include "unko/ParseObjPuts.h"
 #include "unko/Objects.h"
@@ -193,7 +191,7 @@ static bool InsertedCheck(const void* sval, const void* lval)
 	return (0 == strcmp(path, inf->path));
 }
 
-uint16 GetCodeSize(RomFile* rom, const uint32 codeadr)
+static uint16 GetCodeSize(RomFile* rom, const uint32 codeadr)
 {
 	uint8* ptr;
 
@@ -201,36 +199,168 @@ uint16 GetCodeSize(RomFile* rom, const uint32 codeadr)
 	return (uint16)(read16(ptr-4) + 1);
 }
 
-static bool InsertAsm(
-		RomFile* rom,
-		char** dirs,
-		const char* name,
-		const uint32 adr,
+static bool GenerateTempAsm(
+		TextFile* objAsm,
+		TextFile* tmpAsm,
+		List* defineList,
+		List* smwlibs,
 		List* libs,
-		List* insList,
-		List* defineList)
+		uint32 adr,
+		int objGroup,
+		int objIndex)
 {
-#if isWindows
-	HANDLE hFile;
-#else
-	struct stat sts;
-#endif
+	int i;
+	Iterator* lnode;
+	LabelDataStruct* lab;
+	Define *def;
+	const char* linebuf;
+	bool mainDefined;
+
+	/* file open */
+	if(FileOpen_NoError != objAsm->Open2(objAsm, "r"))
+	{
+		puterror("Can't open \"%s\"", objAsm->super.path_get(&objAsm->super));
+		return false;
+	}
+	if(FileOpen_NoError != tmpAsm->Open2(tmpAsm, "w"))
+	{
+		puterror("Can't open \"%s\"", tmpAsm->super.path_get(&tmpAsm->super));
+		return false;
+	}
+
+	/* generate tmpasm */
+	tmpAsm->Printf(tmpAsm, "%s\n", rommap.name);
+	/* -- defines -- */
+	for(lnode = defineList->begin(defineList); NULL != lnode; lnode=lnode->next(lnode))
+	{
+		def = lnode->data(lnode);
+		tmpAsm->Printf(tmpAsm, "!%s = %s\n", def->name, def->val);
+	}
+	/* -- smwlib code -- */
+	for(lnode = smwlibs->begin(smwlibs); NULL != lnode; lnode=lnode->next(lnode))
+	{
+		lab = lnode->data(lnode);
+		tmpAsm->Printf(tmpAsm, "org $%06x\n", lab->loc);
+		tmpAsm->Printf(tmpAsm, "%s:\n", lab->name);
+	}
+	/* -- lib code -- */
+	for(lnode = libs->begin(libs); NULL != lnode; lnode=lnode->next(lnode))
+	{
+		lab = lnode->data(lnode);
+		tmpAsm->Printf(tmpAsm, "org $%06x\n", lab->loc);
+		tmpAsm->Printf(tmpAsm, "%s:\n", lab->name);
+	}
+	/* -- table code -- */
+	tmpAsm->Printf(tmpAsm, "org $%06x\n", adr);
+	tmpAsm->Printf(tmpAsm, "dl main\n", adr);
+	/* -- main code -- */
+	tmpAsm->Printf(tmpAsm, "!map = %d\n", rommap.val);
+	tmpAsm->Printf(tmpAsm, "!object_group = %d\n", objGroup);
+	tmpAsm->Printf(tmpAsm, "!object_number = %d\n", objIndex);
+	i = 0;
+	mainDefined = false;
+	linebuf = objAsm->GetLine(objAsm);
+	while(NULL != linebuf)
+	{
+		i++;
+		if(true == MatchMainLabel(linebuf))
+		{
+			/* multiple declare check */
+			if(true == mainDefined)
+			{
+				puterror("%s: line %d: \"main\" label redefined.", objAsm->super.path_get(&objAsm->super), i);
+				return false;
+			}
+			tmpAsm->Printf(tmpAsm, "freecode\n");
+			mainDefined = true;
+		}
+		tmpAsm->Printf(tmpAsm, "%s\n", linebuf);
+		linebuf = objAsm->GetLine(objAsm);
+	}
+
+	/* close */
+	tmpAsm->super.Close(&tmpAsm->super);
+	objAsm->super.Close(&objAsm->super);
+
+	if(false == mainDefined)
+	{
+		puterror("%s: \"main\" label not found.", objAsm->super.path_get(&objAsm->super));
+		return false;
+	}
+
+	return true;
+}
+
+static void addErrorLabel(List* labels, const char* errline)
+{
+	/**
+	 * Error message match finder
+	 *
+	 *   Label error format:
+	 *   Label XXXXX not found
+	 */
+
+	jmp_buf e;
+	char* work;
+	char* lab;
+	size_t i;
+	size_t len;
+
+	work = Str_copy(errline);
+	len = strlen(work);
+	if(0 == setjmp(e))
+	{
+		if(0 != strncasecmp("Label ", work, 6)) longjmp(e, 1);
+
+		i = 6;
+		SkipUntilSpaces(work, &i, len);
+		if(i == len) longjmp(e, 1);
+
+		work[i] = '\0';
+		if(0 != strncasecmp("not found", &work[i+1], 9)) longjmp(e, 1);
+
+		lab = Str_copy(&work[6]);
+		free(work);
+		labels->push(labels, lab);
+	}
+	else
+	{
+		free(work);
+	}
+
+	return;
+}
+
+typedef struct {
+	RomFile* rom;
+	char** dirs;
+	List* smwlibs;
+	List* libs;
+	List* insList;
+	List* defineList;
+	LibsInsertMan* libsInsMan;
+	int objGroup;
+	int objIndex;
+	char* name;
+	uint32 adr;
+	int *libscnt;
+}InsertAsmArgs;
+
+static bool InsertAsm(InsertAsmArgs *args)
+{
 	int i;
 	jmp_buf  e;
 	FilePath* objPath = NULL;
 	TextFile* objAsm;
 	TextFile* tmpAsm;
-	const char* linebuf;
 	char* path = NULL;
 	Iterator* lnode;
 
 	/* for asar */
 	bool result;
 	LabelDataStruct* lab;
-	Define *def;
-	int romlen = (int)rom->size_get(rom);
+	int romlen = (int)args->rom->size_get(args->rom);
 	InsertInf* inf;
-	bool mainDefined;
 	uint32 codeadr;
 
 	ObjectProperty property = {
@@ -256,25 +386,12 @@ static bool InsertAsm(
 	};
 
 	/* search object asm */
-	for(i=0; NULL != dirs[i]; i++)
+	for(i=0; NULL != args->dirs[i]; i++)
 	{
 		free(path);
-		path = Str_concat(dirs[i], name);
-#if isWindows
-		hFile = CreateFile(
-				path,
-				GENERIC_READ, FILE_SHARE_READ,
-				NULL,
-				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-				NULL
-				);
-		if(INVALID_HANDLE_VALUE != hFile)
+		path = Str_concat(args->dirs[i], args->name);
+		if(fexists(path))
 		{
-			CloseHandle(hFile);
-#else
-		if(0 == stat(path, &sts) && S_ISREG(sts.st_mode))
-		{
-#endif
 			objPath = new_FilePath(path);
 			break;
 		}
@@ -283,19 +400,19 @@ static bool InsertAsm(
 
 	if(NULL == objPath)
 	{
-		puterror("\"%s\" not found.", name);
+		puterror("\"%s\" not found.", args->name);
 		return false;
 	}
 
 	/* skip assemble if src is already inserted. */
-	lnode = insList->search(insList, objPath->path_get(objPath), InsertedCheck);
+	lnode = args->insList->search(args->insList, objPath->path_get(objPath), InsertedCheck);
 	if(NULL != lnode)
 	{
 		uint8* ptr;
 		inf = (InsertInf*)lnode->data(lnode);
 
 		putinfo("  %s is already inserted. update pointer (to $%06x). ", objPath->path_get(objPath), inf->loc);
-		ptr = rom->GetSnesPtr(rom, adr);
+		ptr = args->rom->GetSnesPtr(args->rom, args->adr);
 		write24(ptr, inf->loc);
 		delete_FilePath(&objPath);
 		return true;
@@ -321,76 +438,55 @@ static bool InsertAsm(
 			longjmp(e,1);
 		}
 
-		/* file open */
-		if(FileOpen_NoError != objAsm->Open2(objAsm, "r"))
+		/* Pass1 - Insert without libraries */
+		if(false == GenerateTempAsm(objAsm, tmpAsm,
+					args->defineList, args->smwlibs, args->libs,
+					args->adr, args->objGroup, args->objIndex))
 		{
-			puterror("Can't open \"%s\"", objAsm->super.path_get(&objAsm->super));
 			longjmp(e,1);
 		}
-		if(FileOpen_NoError != tmpAsm->Open2(tmpAsm, "w"))
-		{
-			puterror("Can't open \"%s\"", tmpAsm->super.path_get(&tmpAsm->super));
-			longjmp(e,1);
-		}
-
-		/* generate tmpasm */
-		tmpAsm->Printf(tmpAsm, "%s\n", rommap.name);
-		/* -- defines -- */
-		for(lnode = defineList->begin(defineList); NULL != lnode; lnode=lnode->next(lnode))
-		{
-			def = lnode->data(lnode);
-			tmpAsm->Printf(tmpAsm, "!%s = %s\n", def->name, def->val);
-		}
-		/* -- lib code -- */
-		for(lnode = libs->begin(libs); NULL != lnode; lnode=lnode->next(lnode))
-		{
-			lab = lnode->data(lnode);
-			tmpAsm->Printf(tmpAsm, "org $%06x\n", lab->loc);
-			tmpAsm->Printf(tmpAsm, "%s:\n", lab->name);
-		}
-		/* -- table code -- */
-		tmpAsm->Printf(tmpAsm, "org $%06x\n", adr);
-		tmpAsm->Printf(tmpAsm, "dl main\n", adr);
-		/* -- main code -- */
-		tmpAsm->Printf(tmpAsm, "!map = %d\n", rommap.val);
-		i = 0;
-		mainDefined = false;
-		linebuf = objAsm->GetLine(objAsm);
-		while(NULL != linebuf)
-		{
-			i++;
-			if(true == MatchMainLabel(linebuf))
-			{
-				/* multiple declare check */
-				if(true == mainDefined)
-				{
-					puterror("%s: line %d: \"main\" label redefined.", objAsm->super.path_get(&objAsm->super), i);
-					longjmp(e, 1);
-				}
-				tmpAsm->Printf(tmpAsm, "freecode\n");
-				mainDefined = true;
-			}
-			tmpAsm->Printf(tmpAsm, "%s\n", linebuf);
-			linebuf = objAsm->GetLine(objAsm);
-		}
-
-		/* close */
-		tmpAsm->super.Close(&tmpAsm->super);
-		objAsm->super.Close(&objAsm->super);
-
-		if(false == mainDefined)
-		{
-			puterror("%s: \"main\" label not found.", objAsm->super.path_get(&objAsm->super));
-			longjmp(e, 1);
-		}
-
 		/* patch */
 		asar_reset();
 		result = asar_patch(
 				tmpAsm->super.path_get(&tmpAsm->super),
-				(char*)rom->GetSnesPtr(rom, 0x8000),
-				(int)rom->size_get(rom),
+				(char*)args->rom->GetSnesPtr(args->rom, 0x8000),
+				(int)args->rom->size_get(args->rom),
 				&romlen);
+
+		if(false == result)
+		{
+			int i;
+			int errnums;
+			const struct errordata* err;
+			List* labels = new_List(NULL, free);
+
+			assert(labels);
+			/* Collect label not found error */
+			err = asar_geterrors(&errnums);
+			for(i=0; i<errnums; i++)
+			{
+				addErrorLabel(labels, err[i].rawerrdata);
+			}
+
+			/* Library insert */
+			InsertLibraries(args->rom, labels, args->libsInsMan, args->smwlibs, args->libs, args->libscnt, args->defineList);
+			delete_List(&labels);
+
+			/* Pass2 - Reinsert object */
+			if(false == GenerateTempAsm(objAsm, tmpAsm,
+						args->defineList, args->smwlibs, args->libs,
+						args->adr, args->objGroup, args->objIndex))
+			{
+				longjmp(e,1);
+			}
+			/* patch */
+			asar_reset();
+			result = asar_patch(
+					tmpAsm->super.path_get(&tmpAsm->super),
+					(char*)args->rom->GetSnesPtr(args->rom, 0x8000),
+					(int)args->rom->size_get(args->rom),
+					&romlen);
+		}
 		/* get prints and export */
 		asarprints = asar_getprints(&printcnt);
 		{
@@ -410,7 +506,7 @@ static bool InsertAsm(
 							longjmp(e, 1);
 						}
 						memcpy(lab, &export, sizeof(LabelDataStruct));
-						libs->push(libs, lab);
+						args->libs->push(args->libs, lab);
 						break;
 
 					case Match_Visible:
@@ -454,7 +550,7 @@ static bool InsertAsm(
 		}
 		inf->loc = codeadr;
 		inf->path = path;
-		insList->push(insList, inf);
+		args->insList->push(args->insList, inf);
 	}
 	else
 	{
@@ -463,7 +559,7 @@ static bool InsertAsm(
 		return false;
 	}
 
-	putinfo("  \"%s\" inserted at $%06x. (Size: 0x%x bytes)", objAsm->super.path_get(&objAsm->super), codeadr, GetCodeSize(rom, codeadr));
+	putinfo("  \"%s\" inserted at $%06x. (Size: 0x%x bytes)", objAsm->super.path_get(&objAsm->super), codeadr, GetCodeSize(args->rom, codeadr));
 	delete_TextFile(&objAsm);
 	remove(tmpAsm->super.path_get(&tmpAsm->super));
 	delete_TextFile(&tmpAsm);
@@ -507,119 +603,148 @@ bool InsertObjects(
 		const char* dirname,
 		const uint32 adrMain,
 		const InsertListStruct* lst,
-		List* libs,
-		int* cnt,
+		List* smwlibs,
+		LibsInsertMan* libsInsMan,
+		int* libscnt,
+		int* objscnt,
 		List* defineList)
 {
+	jmp_buf e;
 	const InsertListRangeStruct* range;
 	int i,j;
 	uint32 base;
 	uint32 tbladr;
 	char* dirs[SearchPathNums];
+	List* libs;
 	List* insList;
 	uint8* ptr;
+	InsertAsmArgs insAsmArgs;
 
-	(*cnt) = 0;
+	(*libscnt) = 0;
+	(*objscnt) = 0;
 
-	insList = new_List(CloneInsertInf, DeleteInsertInf);
-	if(NULL == insList)
+
+	if(0 == setjmp(e)) /* try */
 	{
-		putfatal("%s: memory error.", __func__);
-		return false;
-	}
-
-	{
-		size_t len;
-		char* path;
-
-		len = strlen(dirname);
-		path = calloc(len+2, sizeof(char));
-		if(NULL == path)
+		libs = new_List(NULL, DeleteLabelDataStruct);
+		insList = new_List(CloneInsertInf, DeleteInsertInf);
+		if(NULL == insList)
 		{
 			putfatal("%s: memory error.", __func__);
-			delete_List(&insList);
-			return false;
+			longjmp(e, 1);
 		}
-		strcpy_s(path, len+2, dirname);
-#if defined(UNIX)
-		if('/' != path[len-1])
+
 		{
-			path[len] = '/';
-			path[len+1] = '\0';
-		}
-#elif defined(WIN32)
-		if(('\\' != path[len-1]) || ('/' != path[len-1]))
-		{
-			path[len] = '\\';
-			path[len+1] = '\0';
-		}
+			size_t len;
+			char* path;
+
+			len = strlen(dirname);
+			path = calloc(len+2, sizeof(char));
+			if(NULL == path)
+			{
+				putfatal("%s: memory error.", __func__);
+				longjmp(e, 1);
+			}
+			strcpy_s(path, len+2, dirname);
+#if isUnix
+			if('/' != path[len-1])
+			{
+				path[len] = '/';
+				path[len+1] = '\0';
+			}
+#elif isWindows
+			if(('\\' != path[len-1]) || ('/' != path[len-1]))
+			{
+				path[len] = '\\';
+				path[len+1] = '\0';
+			}
 #else
 #error "This system isn't supported."
 #endif
-		if(false == ConstructSearchPath(dirs, path))
-		{
+			if(false == ConstructSearchPath(dirs, path))
+			{
+				free(path);
+				longjmp(e, 1);
+			}
 			free(path);
-			delete_List(&insList);
-			return false;
 		}
-		free(path);
+
+		/**
+		 * construct insAsmArgs
+		 */
+		insAsmArgs.rom = rom;			/* ROM file object */
+		insAsmArgs.dirs = dirs;			/* SearchPath */
+		insAsmArgs.smwlibs = smwlibs;		/* SMW libraries */
+		insAsmArgs.libs = libs;			/* user libraries */
+		insAsmArgs.libsInsMan = libsInsMan;	/* Library install manager */
+		insAsmArgs.insList = insList;		/* inserted object list */
+		insAsmArgs.defineList = defineList;	/* command-line define list */
+		insAsmArgs.libscnt = libscnt;		/* inserted libraries count */
+
+		for(i=0; Grps[i].ranges != NULL; i++)
+		{
+			putinfo("[%s]", GrpName[i]);
+			if(ROMADDRESS_NULL == Grps[i].sa)
+			{
+				base = Get2DObjTblAdr(rom, adrMain);
+				if(ROMADDRESS_NULL == base)
+				{
+					putfatal("%s: Obj2D table is missing...", __func__);
+					longjmp(e, 1);
+				}
+			}
+			else
+			{
+				base = Grps[i].sa;
+			}
+			for(range = Grps[i].ranges; 0 < range->max; range++)
+			{
+				insAsmArgs.objGroup = i;
+				for(j=range->min; j <= range->max; j++)
+				{
+					insAsmArgs.objIndex = j;
+					if(NULL == lst->ngroup[i][j])
+					{
+						/* nothing to do */
+						continue;
+					}
+					insAsmArgs.name = lst->ngroup[i][j];
+
+					/* get object pointer */
+					tbladr = base + ((uint32)j*3);
+
+					/* empty check */
+					ptr = rom->GetSnesPtr(rom, tbladr);
+					if(range->empty != read24(ptr))
+					{
+						puterror("Object %s-%02x isn't empty. (Maybe it has been changed with other tools.)", GrpName[i], j);
+						longjmp(e, 1);
+					}
+
+					/* Insert object */
+					insAsmArgs.adr = tbladr;
+					putinfo("  Insert %02x", j);
+					if(false == InsertAsm(&insAsmArgs))
+					{
+						longjmp(e, 1);
+					}
+
+					(*objscnt)++;
+				}
+			}
+		}
 	}
-
-	for(i=0; Grps[i].ranges != NULL; i++)
+	else /* catch error */
 	{
-		putinfo("[%s]", GrpName[i]);
-		if(ROMADDRESS_NULL == Grps[i].sa)
-		{
-			base = Get2DObjTblAdr(rom, adrMain);
-			if(ROMADDRESS_NULL == base)
-			{
-				putfatal("%s: Obj2D table is missing...", __func__);
-				DestroySearchPath(dirs);
-				delete_List(&insList);
-				return false;
-			}
-		}
-		else
-		{
-			base = Grps[i].sa;
-		}
-		for(range = Grps[i].ranges; 0 < range->max; range++)
-		{
-			for(j=range->min; j <= range->max; j++)
-			{
-				if(NULL == lst->ngroup[i][j])
-				{
-					/* nothing to do */
-					continue;
-				}
-
-				/* get object pointer */
-				tbladr = base + ((uint32)j*3);
-
-				/* empty check */
-				ptr = rom->GetSnesPtr(rom, tbladr);
-				if(range->empty != read24(ptr))
-				{
-					puterror("Object %s-%02x isn't empty. (Maybe it has been changed with other tools.)", GrpName[i], j);
-					return false;
-				}
-
-				/* Insert object */
-				putinfo("  Insert %02x", j);
-				if(false == InsertAsm(rom, dirs, lst->ngroup[i][j], tbladr, libs, insList, defineList))
-				{
-					DestroySearchPath(dirs);
-					delete_List(&insList);
-					return false;
-				}
-
-				(*cnt)++;
-			}
-		}
+		DestroySearchPath(dirs);
+		delete_List(&insList);
+		delete_List(&libs);
+		return false;
 	}
 
 	DestroySearchPath(dirs);
 	delete_List(&insList);
+	delete_List(&libs);
 	return true;
 }
 
