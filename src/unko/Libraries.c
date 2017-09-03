@@ -219,6 +219,12 @@ bool InsertLibraries(
 		label = (const char*)itLab->data(itLab);
 		fileItem = libsInsMan->searchLibrary(libsInsMan, label);
 
+		/* not found */
+		if(NULL == fileItem)
+		{
+			continue;
+		}
+
 		/* Already installed check */
 		if(fileItem->isInserted)
 		{

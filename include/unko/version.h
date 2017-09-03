@@ -9,9 +9,9 @@
 /**
  * Version
  */
-#define AppVersion		1.30
-#define ResVersion		1,3,0,0
-#define FileVersion		7
+#define AppVersion		1.31
+#define ResVersion		1,3,1,0
+#define FileVersion		8
 
 /**
  * UNKO main asm version

@@ -184,5 +184,7 @@ if(UNIX)
 		COMMAND cp -r ${CUR}/libraries ${TGTPATH}/
 		COMMAND rm -rf ${TGTPATH}/objects
 		COMMAND cp -r ${CUR}/objects ${TGTPATH}/
+		COMMAND rm -rf ${TGTPATH}/option
+		COMMAND cp -r ${CUR}/option ${TGTPATH}/
 		)
 endif(UNIX)

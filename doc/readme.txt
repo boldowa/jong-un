@@ -3,7 +3,7 @@
 | ----------------------------------------------           |
 |              ... ~~he is very fond of standing out~~ ... |
 |                                                          |
-|   - ver. 1.30                                            |
+|   - ver. 1.31                                            |
 |                                                          |
 |   Repository : https://github.com/boldowa/unko/          |
 |   Web        : https://boldowa.github.io/unko/           |
@@ -41,6 +41,10 @@
 |     09-02-2017 [v1.30] : Improved library function       |
 |                          and add object variable         |
 |                            Github issue : #9             |
+|       (same)   [v1.31] : Fixed issue which abnormally    |
+|                          exits when label name can't     |
+|                          be resolved.                    |
+|                            Github issue : #12            |
 |                                                          |
 +----------------------------------------------------------+
 
