@@ -3,8 +3,10 @@
 | ----------------------------------------------           |
 |              ... ~~he is very fond of standing out~~ ... |
 |                                                          |
+|   - ver. 1.XX                                            |
 |                                                          |
-|   - ver. 1.22                                            |
+|   Repository : https://github.com/boldowa/unko/          |
+|   Web        : https://boldowa.github.io/unko/           |
 |                                                          |
 |   Changelog)                                             |
 |                                                          |
@@ -35,6 +37,10 @@
 |     08-31-2017 [v1.22] : Fixed some bugs.                |
 |                            Github issue : #2,  #3,  #4,  |
 |                                           #5,  #6,  #10  |
+|                                                          |
+|     09-02-2017 [v1.XX] : Improved library function       |
+|                          and add object variable         |
+|                            Github issue : #9             |
 |                                                          |
 +----------------------------------------------------------+
 
@@ -95,7 +101,7 @@
   +-- list.txt                         ... Object list.
   +-- libasar.so or asar.dll           ... library for asm patch, asar v1.5.0
   +-- unko.exe                         ... main program. (compiled with Visual Studio 2008)
-  +-- unko_mingw.exe                   ... compiled with MinGW-w64.
+  +-- unko_mingw.exe                   ... compiled with MinGW-w64(i686).
   +-- readme.txt                       ... It's file that just you are reading.
   +-- LICENSE                          ... license file
   |
@@ -226,6 +232,7 @@ Usage: unko [options] <rom>
 	    sep		#$30
 	           :
         In this case, "ShareCode" label will export.
+	"$" may or may not be present. (allow : print "export Share = ", pc)
 
 
 [SMW libraries]
@@ -246,17 +253,32 @@ Usage: unko [options] <rom>
       4 ... ExLoRom
       5 ... ExHiRom
 
+[Object valiable]
+  You can these variables in object asm.
+
+    - !object_group  - Group number of the object currently being asssembled.
+    - !object_number - Object number of    - same -
+
+    The group number means
+      0 ... Normal
+      1 ... Castle
+      2 ... Rope
+      3 ... Underground
+      4 ... GhostHouse
+      5 ... ExtendObject
+      6 ... Object2D
+
 
 [Search path]
   Unko searches list file and library sources and object sources in
-    (1) Current directory
-    (2) ROM file directory
-    (3) unko exe directory
+    (1) Current directory     +  .. Search rank High
+    (2) ROM file directory    |
+    (3) unko exe directory    +  .. Search rank Low
 
   If file names conflict, 
     (objects list) Insert one with the highest search rank.
     (objects)      Insert one with the highest search rank.
-    (libraries)    Insert all.
+    (libraries)    Insert what is being used from objects.
 
 
 [Others]
@@ -281,4 +303,17 @@ Usage: unko [options] <rom>
 
 [Unko program License]
   MIT License.
+
+
+[Thanks]
+    - Alcaro                : He provided we a useful library.
+
+    - 1024(0x400)           : Original object tool patch creator
+
+    - Pingu                 : UnOfficial object tool creator. some object based on his code.
+
+    - imamelia              : I referenced 2D object codes (from v0.4).
+
+    - RPGHacker             : He fixed some minor bugs.
+
 
