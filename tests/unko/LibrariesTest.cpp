@@ -25,8 +25,21 @@ TEST_GROUP(Libraries)
 	}
 };
 
-TEST(Libraries, Create)
+/**
+ * Test for InsertLibraries method
+ */
+TEST(Libraries, InsertLibraries)
 {
-	FAIL("Start here");
+	/* TODO: Insert */
+
+	/* TODO: Uninstall */
+}
+
+/**
+ * Test for UninstallLibraries method
+ */
+TEST(Libraries, UninstallLibraries)
+{
+	/* tested in InsertLibraries, so nothing to do here */
 }
 

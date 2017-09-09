@@ -26,6 +26,16 @@ TEST_GROUP(ParseCmdDefs)
 
 TEST(ParseCmdDefs, ParseCmdDefs)
 {
-	FAIL("Start here");
+	/* TODO: Implement */
+}
+
+TEST(ParseCmdDefs, CloneDefine)
+{
+	/* TODO: Implement */
+}
+
+TEST(ParseCmdDefs, DelDefine)
+{
+	/* TODO: Implement */
 }
 

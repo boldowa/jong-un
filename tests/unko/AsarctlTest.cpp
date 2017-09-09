@@ -1,27 +1,40 @@
+/**
+ * Asarctl.h
+ */
 extern "C"
 {
-#include "types.h"
-#include "FilePath.h"
-#include "File.h"
-#include "RomFile.h"
-#include "Asarctl.h"
+#include "common/types.h"
+#include "file/FilePath.h"
+#include "file/File.h"
+#include "file/RomFile.h"
+#include "unko/Asarctl.h"
 }
 
 #include "CppUTest/TestHarness.h"
 
 TEST_GROUP(Asarctl)
 {
-    void setup()
-    {
-    }
+	void setup()
+	{
+	}
 
-    void teardown()
-    {
-    }
+	void teardown()
+	{
+	}
 };
 
-TEST(Asarctl, Create)
+TEST(Asarctl, putasarerr)
 {
-  FAIL("Start here");
+	/* TODO: implement */
+}
+
+TEST(Asarctl, DeleteLabelDataStruct)
+{
+}
+	/* TODO: implement */
+
+TEST(Asarctl, getmapmode)
+{
+	/* TODO: implement */
 }
 

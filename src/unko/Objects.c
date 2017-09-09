@@ -346,6 +346,11 @@ typedef struct {
 	int *libscnt;
 }InsertAsmArgs;
 
+#ifdef CPPUTEST
+void labFree(void* data){free(data);}
+#else
+#define labFree free
+#endif
 static bool InsertAsm(InsertAsmArgs *args)
 {
 	int i;
@@ -458,7 +463,7 @@ static bool InsertAsm(InsertAsmArgs *args)
 			int i;
 			int errnums;
 			const struct errordata* err;
-			List* labels = new_List(NULL, free);
+			List* labels = new_List(NULL, labFree);
 
 			assert(labels);
 			/* Collect label not found error */
@@ -756,6 +761,11 @@ static bool SearchUInt32(const void* sval, const void* lval)
 	return (*v1 == *v2);
 }
 
+#ifdef CPPUTEST
+void uniFree(void* data){free(data);}
+#else
+#  define uniFree free
+#endif
 bool UninstallObjects(RomFile* rom, const uint32 adrMain)
 {
 	int i,j;
@@ -768,7 +778,7 @@ bool UninstallObjects(RomFile* rom, const uint32 adrMain)
 	uint32* uniVal;
 	List* uniList;
 
-	uniList = new_List(NULL, free);
+	uniList = new_List(NULL, uniFree);
 	if(NULL == uniList)
 	{
 		putdebug("%s : memory error.", __func__);

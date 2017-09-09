@@ -50,7 +50,7 @@ TEST(Option, ParseBool)
 	};
 	const char* argvs2[] = {
 		"dummy",
-		"-b",
+		"-bool",
 	};
 	const char** argv = argvs;
 	const char** argv2 = argvs;
@@ -78,6 +78,11 @@ TEST(Option, ParseInt)
 		"100",
 		"file"
 	};
+	const char* argv2[] = {
+		"dummy",
+		"--int",
+		"50a"
+	};
 	const char** argv = argvs;
 	int argc = (sizeof(argvs)/sizeof(char*));
 	OptionStruct op[] = {
@@ -88,6 +93,11 @@ TEST(Option, ParseInt)
 	CHECK(Option_Parse(&argc, (char***)&argv, op));
 	LONGS_EQUAL(100, i);
 	LONGS_EQUAL(2, argc);
+
+	argv = argv2;
+	argc = (sizeof(argv2)/sizeof(char*));
+	CHECK_FALSE(Option_Parse(&argc, (char***)&argv, op));
+	LONGS_EQUAL(3, argc);
 }
 
 TEST(Option, ParseFloat)
@@ -99,6 +109,11 @@ TEST(Option, ParseFloat)
 		"100.5",
 		"file"
 	};
+	const char* argv2[] = {
+		"dummy",
+		"--float",
+		"3.12.4"
+	};
 	const char** argv = argvs;
 	int argc = (sizeof(argvs)/sizeof(char*));
 	OptionStruct op[] = {
@@ -108,6 +123,38 @@ TEST(Option, ParseFloat)
 	LONGS_EQUAL(4, argc);
 	CHECK(Option_Parse(&argc, (char***)&argv, op));
 	DOUBLES_EQUAL(100.5, f, __FLT_EPSILON__);
+	LONGS_EQUAL(2, argc);
+
+	argv = argv2;
+	argc = (sizeof(argv2)/sizeof(char*));
+	CHECK_FALSE(Option_Parse(&argc, (char***)&argv, op));
+	LONGS_EQUAL(3, argc);
+}
+
+TEST(Option, FailCase)
+{
+	OptionStruct op[] = {
+		{ "int", 'i', "desc", OptionType_Int, NULL },
+		{ NULL, '\0', NULL, OptionType_Term, NULL }
+	};
+	const char* argv1[] = {
+		"dummy",
+		"-f",
+		"100.5",
+	};
+	const char* argv2[] = {
+		"dummy",
+		"-i"
+	};
+
+	const char** argv = argv1;
+	int argc = (sizeof(argv1)/sizeof(char*));
+	CHECK_FALSE(Option_Parse(&argc, (char***)&argv, op));
+	LONGS_EQUAL(3, argc);
+
+	argv = argv2;
+	argc = (sizeof(argv2)/sizeof(char*));
+	CHECK_FALSE(Option_Parse(&argc, (char***)&argv, op));
 	LONGS_EQUAL(2, argc);
 }
 

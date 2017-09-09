@@ -193,6 +193,7 @@ bool ParseList(const char* listName, InsertList list)
 		if(fexists(path))
 		{
 			lstPath = path;
+			break;
 		}
 	}
 
@@ -207,6 +208,7 @@ bool ParseList(const char* listName, InsertList list)
 	if(0 == setjmp(e))
 	{
 		lstFile = new_TextFile(lstPath);
+		free(lstPath);
 		if(FileOpen_NoError != lstFile->Open2(lstFile, "r"))
 		{
 			longjmp(e,1);
@@ -266,6 +268,8 @@ bool ParseList(const char* listName, InsertList list)
 			free(buf); buf=NULL;
 			linebuf = lstFile->GetLine(lstFile);
 		}
+
+		delete_TextFile(&lstFile);
 	}
 	else
 	{

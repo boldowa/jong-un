@@ -161,12 +161,6 @@ bool Option_Parse(int* argcp, char*** argvp, OptionStruct* opt)
 				/* Apply option */
 				if(true == detected)
 				{
-					if(NULL == SetOption[o->type])
-					{
-						putfatal("Invalid option type");
-						return false;
-					}
-
 					RemoveArg(&argc, &argv, inx_opt);
 					if(OptionType_Bool == o->type)
 					{
@@ -201,7 +195,7 @@ bool Option_Parse(int* argcp, char*** argvp, OptionStruct* opt)
 		}
 	}
 
-	*argcp = argc;
+	(*argcp) = argc;
 	return true;
 }
 

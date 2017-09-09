@@ -1,23 +1,32 @@
+/**
+ * SearchPathTest.cpp
+ */
 extern "C"
 {
-#include "SearchPath.h"
+#include "common/types.h"
+#include "unko/SearchPath.h"
 }
 
 #include "CppUTest/TestHarness.h"
 
 TEST_GROUP(SearchPath)
 {
-    void setup()
-    {
-    }
+	void setup()
+	{
+	}
 
-    void teardown()
-    {
-    }
+	void teardown()
+	{
+	}
 };
 
-TEST(SearchPath, Create)
+TEST(SearchPath, ConstructSearchPath)
 {
-  FAIL("Start here");
+	/* TODO: Implement */
+}
+
+TEST(SearchPath, DestroySearchPath)
+{
+	/* TODO: Implement */
 }
 

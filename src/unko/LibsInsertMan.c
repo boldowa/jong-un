@@ -287,6 +287,7 @@ static void ReadAsmFile(LibraryFileItem* fileItem, List* labelList, const char* 
 	assert(labelList);
 	assert(path);
 
+	putinfo("Library \"%s\" found.", path);
 	if(0 == setjmp(e))
 	{
 		asmFile = new_TextFile(path);

@@ -19,16 +19,10 @@ void SetSystemEnviroment()
 {
 	size_t len;
 	char tmp[MAX_PATH];
-	int i;
 
 	memset((char*)Enviroment.CurDir, '\0', MAX_PATH);
 	memset((char*)Enviroment.ExeDir, '\0', MAX_PATH);
 	Enviroment.RomDir = NULL;
-
-	for(i=0; i<4; i++)
-	{
-		Enviroment.SearchPath[i] = NULL;
-	}
 
 	/* Set exe dir */
 #if isWindows
@@ -73,10 +67,29 @@ void SetSystemEnviroment()
 #endif
 }
 
+static bool spExists(int index, const char* path)
+{
+	int i;
+	for(i=0; i<=index; i++)
+	{
+		if(0 == strcmp(Enviroment.SearchPath[i], path))
+		{
+			return true; 
+		}
+	}
+	return false;
+}
+
 void SetSearchPath()
 {
 	int i=0;
 
+	for(i=0; i<4; i++)
+	{
+		Enviroment.SearchPath[i] = NULL;
+	}
+
+	i=0;
 	Enviroment.SearchPath[i] = Enviroment.CurDir;
 
 	if((Enviroment.RomDir != NULL) && (0 != strcmp("", Enviroment.RomDir)))
@@ -88,7 +101,7 @@ void SetSearchPath()
 		}
 	}
 
-	if(0 != strcmp(Enviroment.SearchPath[i], Enviroment.ExeDir))
+	if(false == spExists(i, Enviroment.ExeDir))
 	{
 		i++;
 		Enviroment.SearchPath[i] = Enviroment.ExeDir;

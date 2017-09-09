@@ -40,6 +40,7 @@ INCLUDE_DIRS =\
   bolib/include \
   bolib/include/common \
   bolib/include/file \
+  bolib/include/util \
   $(CPPUTEST_HOME)/include/ \
   $(CPPUTEST_HOME)/include/Platforms/Gcc\
   mocks
@@ -49,4 +50,8 @@ CPPUTEST_WARNINGFLAGS = -Wall -Werror -Wswitch-default
 CPPUTEST_WARNINGFLAGS += -Wconversion -Wswitch-enum 
 
 include $(CPPUTEST_HOME)/build/MakefileWorker.mk
+
+unko:
+	make -C bolib
+	make
 

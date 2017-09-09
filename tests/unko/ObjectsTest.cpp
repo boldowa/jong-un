@@ -1,3 +1,6 @@
+/**
+ * ObjectsTest.cpp
+ */
 extern "C"
 {
 #include "common/types.h"
@@ -25,8 +28,21 @@ TEST_GROUP(Objects)
 	}
 };
 
-TEST(Objects, Create)
+/**
+ * Test for InsertObjects method
+ */
+TEST(Objects, InsertObjects)
 {
-	FAIL("Start here");
+	/* TODO: Insert */
+
+	/* TODO: Uninstall */
+}
+
+/**
+ * Test for UninstallObjects method
+ */
+TEST(Objects, UninstallObjects)
+{
+	/* tested in InsertObjects, so nothing to do here */
 }
 

@@ -29,6 +29,10 @@ TEST_GROUP(libsmw)
 
 TEST(libsmw, IsSmw)
 {
+	/* NULL pointer check */
+	CHECK_FALSE(IsSmw(rom));
+
+	/* ROM Open */
 	LONGS_EQUAL(FileOpen_NoError, rom->Open(rom));
 
 	/* Not SMW ROM check */

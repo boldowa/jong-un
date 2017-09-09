@@ -1,3 +1,6 @@
+/**
+ * ParseObjPutsTest.cpp
+ */
 extern "C"
 {
 #include "common/types.h"
@@ -19,8 +22,23 @@ TEST_GROUP(ParseObjPuts)
 	}
 };
 
-TEST(ParseObjPuts, Create)
+TEST(ParseObjPuts, ParseObjPuts)
 {
-	FAIL("Start here");
+	/* TODO: Implement */
+}
+
+TEST(ParseObjPuts, MatchExportValue)
+{
+	/* TODO: Implement */
+}
+
+TEST(ParseObjPuts, MatchBooleanValue)
+{
+	/* TODO: Implement */
+}
+
+TEST(ParseObjPuts, MatchIntegerValue)
+{
+	/* TODO: Implement */
 }
 

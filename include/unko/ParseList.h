@@ -1,9 +1,7 @@
+/**
+ * ParseList.h
+ */
 #pragma once
-/**********************************************************
- *
- * ParseList is responsible for ...
- *
- **********************************************************/
 
 #define IL_GROUPS	7
 #define IL_NUMS		256

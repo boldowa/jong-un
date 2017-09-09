@@ -1,0 +1,91 @@
+//--------------------------------------
+// test object list
+//--------------------------------------
+
+// Normal level --------------
+[Normal]
+29	swblk/InvGreenBlock.asm
+2a	
+2b	
+2c	
+2e	
+2f	
+
+// Castle level --------------
+[Castle]
+29	swblk/InvYellowBlock.asm
+2a	
+2b	
+2c	
+2e	
+2f	
+30	
+31	
+32	
+33	
+
+// Rope level ----------------
+[Rope]
+29	swblk/InvBlueBlock.asm
+2a	
+2b	
+2c	
+2e	
+2f	
+30	
+31	
+
+// Underground level ---------
+[Underground]
+29	swblk/InvRedBlock.asm
+2a	
+2b	
+2c	
+2e	
+2f	
+30	
+31	
+32	
+33	
+
+// GhostHouse level ----------
+[GhostHouse]
+29	ExMidwaySpawn.asm
+2a	
+2b	
+2c	
+
+// Extend object -------------
+[ExtendObject]
+//--- 02 - 0f
+//    If Lunar Magic detects these objects, a fatal error occurs in Lunar Magic.
+//    These objects are unavailable.
+02	
+// ...
+0f	
+
+//--- 98 - ff
+98	swblk/InvGreenBlock.asm
+99	swblk/InvYellowBlock.asm
+9a	swblk/InvBlueBlock.asm
+9b	swblk/InvRedBlock.asm
+9c	ExMidwaySpawn.asm
+9d	CementGate.asm
+9e	DCDoor5Coins.asm
+//-----
+a1	MidCmWall.asm
+a2	CementWall.asm		// Duplicate test
+a3	CementWall.asm		//
+//-----
+//c0	tests/RomMapTest.asm	// RomMap detect test
+//c1	tests/DefineTest.asm	// Define option test
+// ...
+ff	
+
+// Object 2D (LM Ext object) -
+[Object2D]
+//00	pipe/VertScrPipeBody.asm
+01	AnyCondExecuter.asm
+// ...
+ff	
+

@@ -28,4 +28,10 @@ Please let cmake load the CMakeLists.txt
 2. Run "build.sh".
 
 
+## Test
+
+type `make unko`.
+
+(However, test will work on Linux only...)
+
 
