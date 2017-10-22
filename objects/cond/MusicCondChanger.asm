@@ -6,11 +6,15 @@
 ;   Ext value   [$58] ... music number
 ;-------------------------------------------------
 
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../../libraries/sa1def.asm
+
 MusicCondChanger:
 	jsr	MusicCondChk
 	bcc	+
 	lda.b	$58
-	sta.w	$0dda
+	sta.w	$0dda|!Base1
 +	rts
 
 MusicCondChk:

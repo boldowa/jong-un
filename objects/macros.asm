@@ -3,6 +3,10 @@
 ; macros.asm
 ;-------------------------------------------------
 
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../libraries/sa1def.asm
+
 ;--- if you enabled it, Mario will die when you set invalid parameter.
 !NotPlayableOnError = 1
 
@@ -14,11 +18,11 @@ endmacro
 macro OnError()
 	if !NotPlayableOnError != 0
 		lda.b	#$16
-		sta.w	$1dfc
+		sta.w	$1dfc|!Base2
 		jml	SMW_KillMario
 	else
 		lda.b	#$2a
-		sta.w	$1dfc
+		sta.w	$1dfc|!Base2
 		ldy.b	$57
 		lda.b	#$2f		; put muncher
 		jml	Store0to6E

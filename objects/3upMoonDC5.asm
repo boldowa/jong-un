@@ -1,8 +1,13 @@
 ;-------------------------------------------------
 ; Spawn 3up moon if collect dragon coin
 ;-------------------------------------------------
-!DragonCoinCollects	= $1f2f
-!3upMoonObteined	= $1fee
+
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../libraries/sa1def.asm
+
+!DragonCoinCollects	= $1f2f|!Base2
+!3upMoonObteined	= $1fee|!Base2
 
 main:
 	jsl	GetCheck

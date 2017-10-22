@@ -1,6 +1,11 @@
 ;-------------------------------------------------
 ; mid-way cement object
 ;-------------------------------------------------
+
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../libraries/sa1def.asm
+
 	print	"+---- Wall Rose  ----+"
 	print	"|                    |"
 	print	"|                    |"
@@ -12,8 +17,8 @@
 	print	"+--------------------+"
 
 main:
-	ldx.w	$13bf
-	lda.w	$1ea2,x
+	ldx.w	$13bf|!Base2
+	lda.w	$1ea2|!Base2,x
 	and.b	#$40
 	beq	+
 	rtl

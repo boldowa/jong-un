@@ -15,6 +15,10 @@
 ;                           ... bbbb = BG
 ;-------------------------------------------------
 
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../../libraries/sa1def.asm
+
 PaletteCondChanger:
 	jsr	PaletteCondChk
 	bcc	+
@@ -23,19 +27,19 @@ PaletteCondChanger:
 	lsr	a		; | FG
 	lsr	a		; |
 	lsr	a		; |
-	sta.w	$192d		;/
+	sta.w	$192d|!Base2		;/
 	lda.b	$59		;\
 	and.b	#$0f		; | Sprite
-	sta.w	$192e		;/
+	sta.w	$192e|!Base2		;/
 	lda.b	$58		;\
 	lsr	a		; |
 	lsr	a		; | Background Color
 	lsr	a		; |
 	lsr	a		; |
-	sta.w	$192f		;/
+	sta.w	$192f|!Base2		;/
 	lda.b	$58		;\
 	and.b	#$0f		; | BG
-	sta.w	$1930		;/
+	sta.w	$1930|!Base2		;/
 +	rts
 
 PaletteCondChk:
