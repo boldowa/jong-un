@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Standard Meta -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <!-- Site Properties -->
+  <title>UNKO - Unknown Object</title>
+  <link rel="stylesheet" type="text/css" href="dist/components/reset.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/site.css">
+
+  <link rel="stylesheet" type="text/css" href="dist/components/container.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/grid.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/header.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/image.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/menu.css">
+
+  <link rel="stylesheet" type="text/css" href="dist/components/divider.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/dropdown.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/segment.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/button.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/list.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/icon.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/sidebar.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/transition.css">
+  <link rel="stylesheet" type="text/css" href="dist/components/list.css">
+
+  <style type="text/css">
+
+    .hidden.menu {
+      display: none;
+    }
+
+    .masthead.segment {
+      min-height: 700px;
+      padding: 1em 0em;
+    }
+    .masthead .logo.item img {
+      margin-right: 1em;
+    }
+    .masthead .ui.menu .ui.button {
+      margin-left: 0.5em;
+    }
+    .masthead h1.ui.header {
+      margin-top: 3em;
+      margin-bottom: 0em;
+      font-size: 4em;
+      font-weight: normal;
+    }
+    .masthead h2 {
+      font-size: 1.7em;
+      font-weight: normal;
+    }
+
+    .ui.vertical.stripe {
+      padding: 8em 0em;
+    }
+    .ui.vertical.stripe h3 {
+      font-size: 2em;
+    }
+    .ui.vertical.stripe h4 {
+      font-size: 1.5em;
+    }
+    .ui.vertical.stripe .button + h3,
+    .ui.vertical.stripe p + h3 {
+      margin-top: 3em;
+    }
+    .ui.vertical.stripe .floated.image {
+      clear: both;
+    }
+    .ui.vertical.stripe p,
+    .ui.vertical.stripe ul,
+    .ui.vertical.stripe ol {
+      font-size: 1.33em;
+    }
+    .ui.vertical.stripe .horizontal.divider {
+      margin: 3em 0em;
+    }
+
+    .quote.stripe.segment {
+      padding: 0em;
+    }
+    .quote.stripe.segment .grid .column {
+      padding-top: 5em;
+      padding-bottom: 5em;
+    }
+
+    .footer.segment {
+      padding: 5em 0em;
+    }
+
+    .secondary.pointing.menu .toc.item {
+      display: none;
+    }
+
+    span.pickup {
+      color: red;
+    }
+
+    span.ref {
+      background-color: lightgray;
+      padding: 2px;
+    }
+
+    @media only screen and (max-width: 700px) {
+      .ui.fixed.menu {
+        display: none !important;
+      }
+      .secondary.pointing.menu .item,
+      .secondary.pointing.menu .menu {
+        display: none;
+      }
+      .secondary.pointing.menu .toc.item {
+        display: block;
+      }
+      .masthead.segment {
+        min-height: 350px;
+      }
+      .masthead h1.ui.header {
+        font-size: 2em;
+        margin-top: 1.5em;
+      }
+      .masthead h2 {
+        margin-top: 0.5em;
+        font-size: 1.5em;
+      }
+    }
+
+
+  </style>
+
+  <script src="assets/library/jquery.min.js"></script>
+  <script src="dist/components/visibility.js"></script>
+  <script src="dist/components/sidebar.js"></script>
+  <script src="dist/components/transition.js"></script>
+  <script>
+  $(document)
+    .ready(function() {
+
+      // fix menu when passed
+      $('.masthead')
+        .visibility({
+          once: false,
+          onBottomPassed: function() {
+            $('.fixed.menu').transition('fade in');
+          },
+          onBottomPassedReverse: function() {
+            $('.fixed.menu').transition('fade out');
+          }
+        })
+      ;
+
+      // create sidebar and attach to menu open
+      $('.ui.sidebar')
+        .sidebar('attach events', '.toc.item')
+      ;
+
+    })
+  ;
+  </script>
+</head>
+<body>
+
+<!-- Following Menu -->
+<div class="ui large top fixed hidden menu">
+  <div class="ui container">
+    <a href="./" class="active item">Home</a>
+    <a href="./insert" class="item">Insert</a>
+    <a href="./use" class="item">Use</a>
+    <a href="./asm" class="item">Asm</a>
+  </div>
+</div>
+
+<!-- Sidebar Menu -->
+<div class="ui vertical inverted sidebar menu">
+  <a href="./" class="active item">Home</a>
+  <a href="./insert" class="item">Insert</a>
+  <a href="./use" class="item">Use</a>
+  <a href="./asm" class="item">Asm</a>
+</div>
+
+
+<!-- Page Contents -->
+<div class="pusher">
+  <div class="ui inverted vertical masthead center aligned segment">
+
+    <div class="ui container">
+      <div class="ui large secondary inverted pointing menu">
+        <a class="toc item">
+          <i class="sidebar icon"></i>
+        </a>
+        <a href="./" class="active item">Home</a>
+        <a href="./insert" class="item">Insert</a>
+        <a href="./use" class="item">Use</a>
+        <a href="./asm" class="item">Asm</a>
+      </div>
+    </div>
+
+    <div class="ui text container">
+      <h1 class="ui inverted header">
+        UNKO
+      </h1>
+      <h2><span class="pickup">Unk</span>nown <span class="pickup">O</span>bject</h2>
+      <div style="margin-bottom: 20px;"><a href="https://github.com/boldowa/unko/"><div class="ui huge positive button">Github repository<i class="right arrow icon"></i></div></a></div>
+      <div><div style="margin-bottom: 10px; display:inline-block;"><a href="http://smwc.me/s/15648"><div class="ui huge primary button">Get UNKO from SMWC<i class="right arrow icon"></i></div></a></div>
+        <div style="margin-bottom: 10px; display:inline-block;"><a href="https://github.com/boldowa/unko/releases/latest"><div class="ui huge button">Get UNKO from Github<i class="right arrow icon"></i></div></a></div></div>
+    </div>
+
+  </div>
+
+  <div class="ui vertical stripe segment">
+    <div class="ui aligned stackable grid container">
+      <div class="row">
+        <div class="eight wide column">
+          <img src="pics/view.png" class="ui large bordered rounded image">
+        </div>
+        <div class="eight wide right floated column">
+          <h3>What is this?</h3>
+          <p>This is a tool for insert custom objects into SMW ROM.</p>
+          <h3 style="margin-top: 10px;">Supported system</h3>
+          <ul class="ui list">
+            <li class="item">Windows (Windows2000 - Windows8.1)</li>
+            <li class="item">Linux</li>
+          </ul>
+          <p>I don't have Mac, so I can't support it.</p>
+          <h3 style="margin-top: 10px;">LICENSE</h3>
+          <div class="ui grid" style="margin-bottom:20px;">
+            <div class="three column row" style="padding: 2px;">
+              <div class="two wide column">
+                <p>UNKO</p>
+              </div>
+              <div class="one wide column">
+                <p>:</p>
+              </div>
+              <div class="five wide column">
+                <p>MIT</p>
+              </div>
+            </div>
+
+            <div class="three column row" style="padding: 2px;">
+              <div class="two wide column">
+                <p>Asar</p>
+              </div>
+              <div class="one wide column">
+                <p>:</p>
+              </div>
+              <div class="five wide column">
+                <p>LGPL v3  &copy;Alcaro</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="column">
+          <h3>Features</h3>
+          <ul class="ui list">
+            <li>
+              <b>Light</b><br>
+              This program written in C. So program size is small.
+            </li>
+            <li>
+              <b>LoRom / ExLoRom / SA-1Rom Support</b><br>
+              (However, I hasn't check strictly.)
+            </li>
+            <li>
+              <b>Interface like GPS / PIXI</b><br>
+              Has list.txt + objects dir + library dir
+            </li>
+            <li>
+              <b>Asar only</b><br>
+              You can't use other assembler.
+            </li>
+            <li>
+              <b>Available to insert objects over 256</b>
+            </li>
+            <li>
+              <b>Shared code syntax / feature</b><br>
+              This tool has "library" feature and label export syntax.
+            </li>
+            <li>
+              <b>Search path feature</b><br>
+              This feature makes it easier to create directoryes for different projects.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="eight wide column">
+          <h3 class="ui header">How to use it</h3>
+          <p>
+          This tool is CUI application.
+          So, you are required to operate the command line.
+          </p>
+          <p>The easy way to use is shown below.</p>
+          <h4>Make batch file</h4>
+          <ol class="ui list">
+            <li class="item">Open any text editor.</li>
+            <li class="item">
+              Enter these.
+              <div class="ui inverted segment">
+                @echo off<br>
+                set prog=unko<br>
+                set option=<br>
+                if not '%1' == '' goto execute<br>
+                echo File isn't specified...<br>
+                pause<br>
+                exit<br>
+                <br>
+                :execute<br>
+                %~d1<br>
+                cd "%~dp1"<br>
+                "%~dp0%prog%" %option% "%~nx1"<br>
+                if %ERRORLEVEL% neq 0 pause
+              </div>
+            </li>
+            <li class="item">Save as bat file. (e.g. &quot;insert.bat&quot;)</li>
+            <li class="item">Move it to the same directory as unko.exe</li>
+          </ol>
+          <p>And drop the ROM file on batch file.</p>
+          <p>If you want to specify some options,
+          edit line 3 of this batch file.<br>
+          (e.g. <span class="ref">option=-D DEBUG -l list2.txt</span>)
+          </p>
+        </div>
+        <div class="eight wide right floated column">
+          <h3 class="ui header">Usage</h3>
+          <div class="ui list">
+            <div class="item">
+              <h4>-l (--list)</h4>
+              <p>Specify the object list file name.<br>
+                 default is <b>list.txt</b></p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-L (--library)</h4>
+              <p>Specify the libraries directory name.<br>
+                 default is <b>libraries</b></p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-o (--object)</h4>
+              <p>Specify the objects directory name.<br>
+                 default is <b>objects</b></p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-D (--define)</h4>
+              <p>Add define for object assemble.<br>
+                 e.g. <span class="ref">-D DEBUG</span> / <span class="ref">-D TestVal=3</span></p>
+              <p>Specified values can be referenced from the object asm.<br>
+                 (<span class="ref">!DEBUG = 1</span> / <span class="ref">!TestVal = 3</span>)</p>
+              <p>Asar doesn't have "ifndef" like syntax(maybe). So it can't used effectively.</p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-u (--uninstall)</h4>
+              <p>Uninstall all of data about UNKO from ROM file.</p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-d (--debug)</h4>
+              <p>Enable to output debug info.</p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-v (--version)</h4>
+              <p>Show program version info.</p>
+              <div class="ui divider"></div>
+            </div>
+            <div class="item">
+              <h4>-? (--help)</h4>
+              <p>Show program usage info.</p>
+              <div class="ui divider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="ui inverted vertical footer segment">
+    <div class="ui container">
+      <div class="ui stackable inverted divided equal height stackable grid">
+        <div class="seven wide column">
+          <h4 class="ui inverted header"></h4>
+          <p class="ui inverted">&copy; 2017 boldowa</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+
+</html>
