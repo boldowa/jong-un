@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "types.h"
-#include "Funex.h"
+#include <bolib.h>
+#include "common/Funex.h"
 
 int FunexMatch(const char* s, FunexStruct* funex)
 {

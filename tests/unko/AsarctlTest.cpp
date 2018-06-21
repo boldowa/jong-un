@@ -1,12 +1,10 @@
 /**
- * Asarctl.h
+ * @file Asarctl.h
  */
+#include <bolib.h>
+#include <bolib/file/RomFile.h>
 extern "C"
 {
-#include "common/types.h"
-#include "file/FilePath.h"
-#include "file/File.h"
-#include "file/RomFile.h"
 #include "unko/Asarctl.h"
 }
 

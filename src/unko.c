@@ -3,18 +3,18 @@
  *   - Object insertion tool main src
  */
 
-#include "common/types.h"
 #include <assert.h>
 #include <setjmp.h>
-#include "common/Str.h"
-#include "common/List.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <bolib.h>
+#include <bolib/file/RomFile.h>
+#include <bolib/file/TextFile.h>
+#include "compiler.h"
 #include "common/puts.h"
 #include "common/Option.h"
-#include "common/Enviroment.h"
-#include "common/ReadWrite.h"
-#include "file/File.h"
-#include "file/RomFile.h"
-#include "file/TextFile.h"
+#include "common/Environment.h"
 #include "smw/libsmw.h"
 #include "asar/asardll.h"
 #include "unko/version.h"
@@ -52,6 +52,17 @@
  */
 #define ExecutePtrLong		0x0086fa
 
+#if isWindows
+#  define SHARED_LIB_PREFIX ""
+#  define SHARED_LIB_EXT ".dll"
+#  define EXECUTABLE_EXT ".exe"
+#else
+#  define SHARED_LIB_PREFIX "lib"
+#  define SHARED_LIB_EXT ".so"
+#  define EXECUTABLE_EXT ""
+#endif
+
+#define ASARLIB_FILE SHARED_LIB_PREFIX "asar" SHARED_LIB_EXT
 
 typedef struct OptionValue {
 	const char* listName;
@@ -106,12 +117,14 @@ static void ShowVersion()
 	api_ver_min = asar_apiversion()%100;
 
 	printf("%s v%.2lf [Code: v0x%04x]\n", AppName, AppVersion, CodeVersion);
+	printf("--- %s\n", UNKO_GIT_REVISION);
 	printf("  by boldowa\n");
 	printf("  since    : May 13 2017\n");
 	printf("  compiled : %s\n", __DATE__);
-	printf("             with %s ver.%s\n", C_COMPILER, C_COMPILER_VER);
-	printf("Asar: v%d.%d.%d\n", asar_ver_maj, asar_ver_min, asar_ver_bug);
-	printf("  API v%d.%d\n", api_ver_maj, api_ver_min);
+	printf("             with %s ver.%s\n", UNKO_C_COMPILER, UNKO_C_COMPILER_VERSION);
+	printf("  Asar     : v%d.%d.%d API v%d.%d\n",
+			asar_ver_maj, asar_ver_min, asar_ver_bug,
+			api_ver_maj, api_ver_min);
 }
 
 /**
@@ -250,9 +263,9 @@ static bool UninstallUnko(RomFile* rom, const uint32 adrMain)
 
 static void PutsSignature(TextFile* asmFile)
 {
-	asmFile->Printf(asmFile, "\n");
-	asmFile->Printf(asmFile, "db\t\"" Signature "\", $00\n");
-	asmFile->Printf(asmFile, "db\t\"MAIN\", $00\n");
+	asmFile->printf(asmFile, "\n");
+	asmFile->printf(asmFile, "db\t\"" Signature "\", $00\n");
+	asmFile->printf(asmFile, "db\t\"MAIN\", $00\n");
 }
 
 static bool InsertAsm(RomFile* rom, const char* path, const InsertAsmInjection_t injection)
@@ -280,39 +293,39 @@ static bool InsertAsm(RomFile* rom, const char* path, const InsertAsmInjection_t
 		}
 
 		/* file open */
-		if(FileOpen_NoError != libAsm->Open2(libAsm, "r"))
+		if(FileOpen_NoError != libAsm->open2(libAsm, "r"))
 		{
-			puterror("Can't open \"%s\"", libAsm->super.path_get(&libAsm->super));
+			puterror("Can't open \"%s\"", libAsm->path_get(libAsm));
 			longjmp(e,1);
 		}
-		if(FileOpen_NoError != tmpAsm->Open2(tmpAsm, "w"))
+		if(FileOpen_NoError != tmpAsm->open2(tmpAsm, "w"))
 		{
-			puterror("Can't open \"%s\"", tmpAsm->super.path_get(&tmpAsm->super));
+			puterror("Can't open \"%s\"", tmpAsm->path_get(tmpAsm));
 			longjmp(e,1);
 		}
 
 		/* generate tmpasm */
-		tmpAsm->Printf(tmpAsm, "%s\n", rommap.name);
+		tmpAsm->printf(tmpAsm, "%s\n", rommap.name);
 		/* -- main code -- */
-		tmpAsm->Printf(tmpAsm, "!map = %d\n", rommap.val);
-		tmpAsm->Printf(tmpAsm, "freecode\n");
-		linebuf = libAsm->GetLine(libAsm);
+		tmpAsm->printf(tmpAsm, "!map = %d\n", rommap.val);
+		tmpAsm->printf(tmpAsm, "freecode\n");
+		linebuf = libAsm->getline(libAsm);
 		while(NULL != linebuf)
 		{
-			tmpAsm->Printf(tmpAsm, "%s\n", linebuf);
-			linebuf = libAsm->GetLine(libAsm);
+			tmpAsm->printf(tmpAsm, "%s\n", linebuf);
+			linebuf = libAsm->getline(libAsm);
 		}
 		/* execute injection code */
 		if(NULL != injection) injection(tmpAsm);
 
 		/* close */
-		tmpAsm->super.Close(&tmpAsm->super);
-		libAsm->super.Close(&libAsm->super);
+		tmpAsm->close(tmpAsm);
+		libAsm->close(libAsm);
 
 		/* patch */
 		asar_reset();
 		result = asar_patch(
-				tmpAsm->super.path_get(&tmpAsm->super),
+				tmpAsm->path_get(tmpAsm),
 				(char*)rom->GetSnesPtr(rom, 0x8000),
 				(int)rom->size_get(rom),
 				&romlen);
@@ -322,13 +335,13 @@ static bool InsertAsm(RomFile* rom, const char* path, const InsertAsmInjection_t
 			int i;
 			for(i=0; i<printcnt; i++)
 			{
-				putinfo("%s: %s", libAsm->super.path_get(&libAsm->super), asarprints[i]);
+				putinfo("%s: %s", libAsm->path_get(libAsm), asarprints[i]);
 			}
 		}
 		if(false == result)
 		{
 			putasarerr();
-			puterror("Failed to insert \"%s\"", libAsm->super.path_get(&libAsm->super));
+			puterror("Failed to insert \"%s\"", libAsm->path_get(libAsm));
 			longjmp(e, 1);
 		}
 	}
@@ -352,7 +365,7 @@ static bool InstallUnko(RomFile* rom)
 	uint32 adrMain;
 	uint16 codeVer;
 
-	asmPath = Str_concat(Enviroment.ExeDir, AsmPath);
+	asmPath = Str_concat(Environment.ExeDir, AsmPath);
 	res = InsertAsm(rom, asmPath, PutsSignature);
 	free(asmPath);
 
@@ -406,7 +419,7 @@ static bool GenerateSMWLibs(RomFile* rom, List* smwlibs)
 	LabelDataStruct* smwlab;
 	bool res;
 
-	asmPath = Str_concat(Enviroment.ExeDir, SmwLibPath);
+	asmPath = Str_concat(Environment.ExeDir, SmwLibPath);
 	res = InsertAsm(rom, asmPath, NULL);
 	free(asmPath);
 	if(false == res)
@@ -526,7 +539,7 @@ static bool Insert(RomFile* rom, const OptionValue* opt)
 	/* Check Lunar Magic */
 	if(false == IsLMInstalled(rom))
 	{
-		puterror("LunarMagic isn't installed to this rom : \"%s\".", rom->super.path_get(&rom->super));
+		puterror("LunarMagic isn't installed to this rom : \"%s\".", rom->path_get(rom));
 		return false;
 	}
 
@@ -653,7 +666,7 @@ static bool WriteRom(const char *rompath, const OptionValue* opt, bool (*proc)(R
 
 	/* rom file open */
 	rom = new_RomFile(rompath);
-	if(FileOpen_NoError != rom->Open(rom))
+	if(FileOpen_NoError != rom->open(rom))
 	{
 		puterror("Can't open \"%s\".", rompath);
 		delete_RomFile(&rom);
@@ -661,17 +674,17 @@ static bool WriteRom(const char *rompath, const OptionValue* opt, bool (*proc)(R
 	}
 
 	/* set enviroment */
-	Enviroment.RomDir = rom->super.dir_get(&rom->super);
-	if(0 == strcmp("", rom->super.dir_get(&rom->super)))
+	Environment.RomDir = rom->dir_get(rom);
+	if(0 == strcmp("", rom->dir_get(rom)))
 	{
-		Enviroment.RomDir = Enviroment.CurDir;
+		Environment.RomDir = Environment.CurDir;
 	}
 	SetSearchPath();
 	{
 		int i;
-		for(i=0; Enviroment.SearchPath[i] != NULL; i++)
+		for(i=0; Environment.SearchPath[i] != NULL; i++)
 		{
-			putdebug("Enviroment.SearchPath[%d] = %s", i, Enviroment.SearchPath[i]);
+			putdebug("Environment.SearchPath[%d] = %s", i, Environment.SearchPath[i]);
 		}
 	}
 	getmapmode(rom);
@@ -690,14 +703,14 @@ static bool WriteRom(const char *rompath, const OptionValue* opt, bool (*proc)(R
 	/* write rom */
 	if(true == result)
 	{
-		result = rom->Write(rom);
+		result = rom->write(rom);
 		if(false == result)
 		{
-			putfatal("ROM Write error occured...");
+			putfatal("ROM write error occured...");
 		}
 	}
 
-	rom->Close(rom);
+	rom->close(rom);
 	delete_RomFile(&rom);
 
 	return result;
@@ -749,18 +762,22 @@ int Unko(int argc, char** argv)
 		return -1;
 	}
 
-	SetSystemEnviroment();
+	SetSystemEnvironment();
 	opt.listName = DefaultListName;
 	opt.libsDirName = DefaultLibDirName;
 	opt.objsDirName = DefaultObjDirName;
 	opt.defineList = defineList;
 
 	/* init asar */
-	if(false == asar_init())
 	{
-		putfatal("asar_init() failed.");
-		delete_List(&defineList);
-		return -1;
+		char dllpath[MAX_PATH];
+		sprintf_s(dllpath, MAX_PATH, "%s%s", Environment.ExeDir, ASARLIB_FILE);
+		if(!asar_init_with_dll_path(dllpath))
+		{
+			putfatal("asar_init() failed.");
+			delete_List(&defineList);
+			return -1;
+		}
 	}
 
 	/* Get command-line options */
@@ -771,8 +788,8 @@ int Unko(int argc, char** argv)
 		delete_List(&defineList);
 		return -1;
 	}
-	putdebug("ExeDir: %s",Enviroment.ExeDir);
-	putdebug("CurDir: %s",Enviroment.CurDir);
+	putdebug("ExeDir: %s",Environment.ExeDir);
+	putdebug("CurDir: %s",Environment.CurDir);
 
 	/* Show help / version */
 	if(true == showVersion)
@@ -829,17 +846,3 @@ int Unko(int argc, char** argv)
 	return 0;
 }
 
-#ifndef CPPUTEST
-/**
- * @brief Program entry point
- *
- * @param argc arguments count
- * @param argv arguments values
- *
- * @return result
- */
-int main(int argc, char** argv)
-{
-	return Unko(argc, argv);
-}
-#endif

@@ -1,24 +1,21 @@
 /**
- * LibsInsertMan.c
+ * @file LibsInsertMan.c
  */
-#include "common/types.h"
 #include <assert.h>
 #include <setjmp.h>
 #include <string.h>
+#include <stdlib.h>
+#include <bolib.h>
 #if isWindows
 #  include <windows.h>
 #else
 #  include <dirent.h>
 #endif
+#include <bolib/file/TextFile.h>
 #include "common/puts.h"
-#include "common/Str.h"
-#include "common/List.h"
 #include "common/Funex.h"
-#include "common/Enviroment.h"
+#include "common/Environment.h"
 #include "unko/SearchPath.h"
-#include "file/FilePath.h"
-#include "file/File.h"
-#include "file/TextFile.h"
 #include "unko/LibsInsertMan.h"
 
 /* this header isn't read from anything other */
@@ -269,6 +266,12 @@ static char* GetLabel(const char* line)
 		return NULL;
 	}
 
+	if('_' == work[i])
+	{
+		free(work);
+		return NULL;
+	}
+
 	label = Str_copy(&work[i]);
 	free(work);
 
@@ -296,14 +299,14 @@ static void ReadAsmFile(LibraryFileItem* fileItem, List* labelList, const char* 
 			longjmp(e, 1);
 		}
 
-		if(FileOpen_NoError != asmFile->Open(asmFile))
+		if(FileOpen_NoError != asmFile->open(asmFile))
 		{
-			putwarn("Can't open \"%s\"", asmFile->super.path_get(&asmFile->super));
+			putwarn("Can't open \"%s\"", asmFile->path_get(asmFile));
 			longjmp(e, 1);
 		}
 
-		putdebug("label search: %s", asmFile->super.path_get(&asmFile->super));
-		linebuf = asmFile->GetLine(asmFile);
+		putdebug("label search: %s", asmFile->path_get(asmFile));
+		linebuf = asmFile->getline(asmFile);
 		while(NULL != linebuf)
 		{
 			/* match func */
@@ -317,10 +320,10 @@ static void ReadAsmFile(LibraryFileItem* fileItem, List* labelList, const char* 
 				}
 				free(label);
 			}
-			linebuf = asmFile->GetLine(asmFile);
+			linebuf = asmFile->getline(asmFile);
 		}
 
-		asmFile->super.Close(&asmFile->super);
+		asmFile->close(asmFile);
 	}
 	else
 	{

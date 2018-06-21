@@ -1,12 +1,12 @@
 /**
  * libsmw.c
  */
-#include "common/types.h"
+#include <string.h>
+#include <stdlib.h>
+#include <bolib.h>
 #include "common/puts.h"
-#include "common/ReadWrite.h"
 #include <assert.h>
-#include "file/File.h"
-#include "file/RomFile.h"
+#include <bolib/file/RomFile.h>
 #include "smw/libsmw.h"
 
 bool IsSmw(RomFile* rom)

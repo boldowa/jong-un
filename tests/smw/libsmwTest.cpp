@@ -1,9 +1,12 @@
+/**
+ * @file libsmwTest.cpp
+ */
+#include <memory.h>
+#include <bolib.h>
+#include <bolib/file/RomFile.h>
+#include <bolib/file/TestRomFile.h>
 extern "C"
 {
-#include "common/types.h"
-#include "file/File.h"
-#include "file/RomFile.h"
-#include "../file/TestRomFile.h"
 #include "smw/libsmw.h"
 #include "common/puts.h"
 }
@@ -16,8 +19,8 @@ TEST_GROUP(libsmw)
 	RomFile* badrom;
 	void setup()
 	{
-		rom = new_RomFile_ForTest("l1024");
-		badrom = new_RomFile_ForTest("l256");
+		rom = new_TestRomFile("l1024");
+		badrom = new_TestRomFile("l256");
 	}
 
 	void teardown()
@@ -33,7 +36,7 @@ TEST(libsmw, IsSmw)
 	CHECK_FALSE(IsSmw(rom));
 
 	/* ROM Open */
-	LONGS_EQUAL(FileOpen_NoError, rom->Open(rom));
+	LONGS_EQUAL(FileOpen_NoError, rom->open(rom));
 
 	/* Not SMW ROM check */
 	CHECK_FALSE(IsSmw(rom));
@@ -59,8 +62,8 @@ TEST(libsmw, IsLMInstalled)
 	const size_t LMSigLen = strlen(LMSig);
 	uint8 *p;
 
-	LONGS_EQUAL(FileOpen_NoError, rom->Open(rom));
-	LONGS_EQUAL(FileOpen_NoError, rom->Open(badrom));
+	LONGS_EQUAL(FileOpen_NoError, rom->open(rom));
+	LONGS_EQUAL(FileOpen_NoError, rom->open(badrom));
 
 	/* NULL ADDRESS check */
 	CHECK_FALSE(IsLMInstalled(badrom));

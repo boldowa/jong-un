@@ -1,16 +1,15 @@
 /**
  * Libraries.c
  */
-#include "common/types.h"
 #include <setjmp.h>
+#include <stdlib.h>
+#include <string.h>
+#include <bolib.h>
+#include <bolib/file/RomFile.h>
+#include <bolib/file/TextFile.h>
 #include "unko/Signature.h"
 #include "common/puts.h"
-#include "common/Str.h"
-#include "common/List.h"
-#include "common/Enviroment.h"
-#include "file/File.h"
-#include "file/RomFile.h"
-#include "file/TextFile.h"
+#include "common/Environment.h"
 #include "asar/asardll.h"
 #include "unko/Asarctl.h"
 #include "unko/LibsInsertMan.h"
@@ -84,55 +83,55 @@ static bool InsertAsm(
 		}
 
 		/* file open */
-		if(FileOpen_NoError != libAsm->Open2(libAsm, "r"))
+		if(FileOpen_NoError != libAsm->open2(libAsm, "r"))
 		{
-			puterror("Can't open \"%s\"", libAsm->super.path_get(&libAsm->super));
+			puterror("Can't open \"%s\"", libAsm->path_get(libAsm));
 			longjmp(e,1);
 		}
-		if(FileOpen_NoError != tmpAsm->Open2(tmpAsm, "w"))
+		if(FileOpen_NoError != tmpAsm->open2(tmpAsm, "w"))
 		{
-			puterror("Can't open \"%s\"", tmpAsm->super.path_get(&tmpAsm->super));
+			puterror("Can't open \"%s\"", tmpAsm->path_get(tmpAsm));
 			longjmp(e,1);
 		}
 
 		/* generate tmpasm */
-		tmpAsm->Printf(tmpAsm, "%s\n", rommap.name);
+		tmpAsm->printf(tmpAsm, "%s\n", rommap.name);
 		/* -- defines -- */
 		for(lnode = defineList->begin(defineList); NULL != lnode; lnode=lnode->next(lnode))
 		{
 			def = lnode->data(lnode);
-			tmpAsm->Printf(tmpAsm, "!%s = %s\n", def->name, def->val);
+			tmpAsm->printf(tmpAsm, "!%s = %s\n", def->name, def->val);
 		}
 		/* -- lib code -- */
 		for(lnode = smwlibs->begin(smwlibs); NULL != lnode; lnode=lnode->next(lnode))
 		{
 			lab = lnode->data(lnode);
-			tmpAsm->Printf(tmpAsm, "org $%06x\n", lab->loc);
-			tmpAsm->Printf(tmpAsm, "%s:\n", lab->name);
+			tmpAsm->printf(tmpAsm, "org $%06x\n", lab->loc);
+			tmpAsm->printf(tmpAsm, "%s:\n", lab->name);
 		}
 		/* -- main code -- */
-		tmpAsm->Printf(tmpAsm, "!map = %d\n", rommap.val);
-		tmpAsm->Printf(tmpAsm, "freecode\n");
-		linebuf = libAsm->GetLine(libAsm);
+		tmpAsm->printf(tmpAsm, "!map = %d\n", rommap.val);
+		tmpAsm->printf(tmpAsm, "freecode\n");
+		linebuf = libAsm->getline(libAsm);
 		while(NULL != linebuf)
 		{
-			tmpAsm->Printf(tmpAsm, "%s\n", linebuf);
-			linebuf = libAsm->GetLine(libAsm);
+			tmpAsm->printf(tmpAsm, "%s\n", linebuf);
+			linebuf = libAsm->getline(libAsm);
 		}
 		/* Signature */
-		tmpAsm->Printf(tmpAsm, "\n");
-		tmpAsm->Printf(tmpAsm, "db\t\"" Signature "\", $00\n");
-		tmpAsm->Printf(tmpAsm, "db\t\"LIB_\", $00\n");
+		tmpAsm->printf(tmpAsm, "\n");
+		tmpAsm->printf(tmpAsm, "db\t\"" Signature "\", $00\n");
+		tmpAsm->printf(tmpAsm, "db\t\"LIB_\", $00\n");
 
 		/* close */
-		tmpAsm->super.Close(&tmpAsm->super);
-		libAsm->super.Close(&libAsm->super);
+		tmpAsm->close(tmpAsm);
+		libAsm->close(libAsm);
 
 		/* patch */
-		putdebug("asar_pattch \"%s\"", tmpAsm->super.path_get(&tmpAsm->super));
+		putdebug("asar_pattch \"%s\"", tmpAsm->path_get(tmpAsm));
 		asar_reset();
 		result = asar_patch(
-				tmpAsm->super.path_get(&tmpAsm->super),
+				tmpAsm->path_get(tmpAsm),
 				(char*)rom->GetSnesPtr(rom, 0x8000),
 				(int)rom->size_get(rom),
 				&romlen);
@@ -143,13 +142,13 @@ static bool InsertAsm(
 			int i;
 			for(i=0; i<printcnt; i++)
 			{
-				putinfo("  %s: %s", libAsm->super.path_get(&libAsm->super), asarprints[i]);
+				putinfo("  %s: %s", libAsm->path_get(libAsm), asarprints[i]);
 			}
 		}
 		if(false == result)
 		{
 			putasarerr();
-			puterror("  Failed to insert \"%s\"", libAsm->super.path_get(&libAsm->super));
+			puterror("  Failed to insert \"%s\"", libAsm->path_get(libAsm));
 			longjmp(e, 1);
 		}
 
@@ -194,7 +193,7 @@ static bool InsertAsm(
 		return false;
 	}
 
-	putinfo("  %s installed.", libAsm->super.path_get(&libAsm->super));
+	putinfo("  %s installed.", libAsm->path_get(libAsm));
 	delete_TextFile(&libAsm);
 	delete_TextFile(&tmpAsm);
 	remove(TempAsmName);
@@ -236,6 +235,7 @@ bool InsertLibraries(
 		{
 			return false;
 		}
+		fileItem->isInserted = true;
 		(*libscnt)++;
 	}
 	return true;

@@ -1,14 +1,13 @@
 /**
- * ParseCmdDefs.c
+ * @file ParseCmdDefs.c
  */
-
-#include "common/types.h"
 #include <ctype.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include <bolib.h>
 #include "common/puts.h"
-#include "common/Str.h"
 #include "common/Funex.h"
-#include "common/List.h"
 typedef struct _RomFile RomFile; /* for Asarctl.h */
 #include "unko/Asarctl.h"
 #include "unko/ParseCmdDefs.h"

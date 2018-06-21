@@ -1,8 +1,11 @@
+/**
+ * @file OptionTest.cpp
+ */
+#include <stdlib.h>
 extern "C"
 {
-#include <stdlib.h>
-#include "puts.h"
-#include "Option.h"
+#include "common/puts.h"
+#include "common/Option.h"
 }
 
 #include "CppUTest/TestHarness.h"

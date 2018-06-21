@@ -1,16 +1,15 @@
-#include "common/types.h"
+/**
+ * @file ParseList.c
+ */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <setjmp.h>
-#include "common/Enviroment.h"
+#include <bolib.h>
+#include "common/Environment.h"
 #include "common/puts.h"
-#include "common/Str.h"
 #include "common/Funex.h"
-#include "file/FilePath.h"
-#include "file/File.h"
-#include "file/TextFile.h"
-#include "file/libfile.h"
+#include <bolib/file/TextFile.h>
 #include "unko/ParseList.h"
 
 typedef struct ListItemSt {
@@ -186,10 +185,10 @@ bool ParseList(const char* listName, InsertList list)
 	};
 
 	/* search list */
-	for(i=0; NULL != Enviroment.SearchPath[i]; i++)
+	for(i=0; NULL != Environment.SearchPath[i]; i++)
 	{
 		free(path);
-		path = Str_concat(Enviroment.SearchPath[i], listName);
+		path = Str_concat(Environment.SearchPath[i], listName);
 		if(fexists(path))
 		{
 			lstPath = path;
@@ -209,13 +208,13 @@ bool ParseList(const char* listName, InsertList list)
 	{
 		lstFile = new_TextFile(lstPath);
 		free(lstPath);
-		if(FileOpen_NoError != lstFile->Open2(lstFile, "r"))
+		if(FileOpen_NoError != lstFile->open2(lstFile, "r"))
 		{
 			longjmp(e,1);
 		}
 
-		putdebug("Parse %s", lstFile->super.path_get(&lstFile->super));
-		linebuf = lstFile->GetLine(lstFile);
+		putdebug("Parse %s", lstFile->path_get(lstFile));
+		linebuf = lstFile->getline(lstFile);
 		while(NULL != linebuf)
 		{
 			/* comment process */
@@ -226,7 +225,7 @@ bool ParseList(const char* listName, InsertList list)
 			if(0 == strlen(buf))
 			{
 				free(buf); buf=NULL;
-				linebuf = lstFile->GetLine(lstFile);
+				linebuf = lstFile->getline(lstFile);
 				continue;
 			}
 
@@ -243,7 +242,7 @@ bool ParseList(const char* listName, InsertList list)
 					if(list->ngroup[grpNo][listItem.inx] != NULL)
 					{
 						puterror("%s: line %d: conflict object. (object %s-%02x: %s / %s)",
-								lstFile->super.path_get(&lstFile->super),
+								lstFile->path_get(lstFile),
 								lstFile->row_get(lstFile),
 								GrpName[grpNo],
 								listItem.inx,
@@ -259,14 +258,14 @@ bool ParseList(const char* listName, InsertList list)
 				/* Unmatch */
 				default:
 					puterror("%s: line %d: syntax error.",
-							lstFile->super.path_get(&lstFile->super),
+							lstFile->path_get(lstFile),
 							lstFile->row_get(lstFile));
 					longjmp(e, 1);
 			}
 
 			/* next */
 			free(buf); buf=NULL;
-			linebuf = lstFile->GetLine(lstFile);
+			linebuf = lstFile->getline(lstFile);
 		}
 
 		delete_TextFile(&lstFile);

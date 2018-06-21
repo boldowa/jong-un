@@ -1,190 +1,117 @@
-#-----------------------------------------------------------
-# CMakeList for unko
-#-----------------------------------------------------------
-
+#-------------------------------------------------
+# UNKO CMakeLists
+#-------------------------------------------------
 cmake_minimum_required(VERSION 3.1)
 
-### add exe
-macro(Make target)
-	file(GLOB SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.c")
-        set(MAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/${target}.c")
-        set(MAIN_INC "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
-        set(_INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-        set(MAIN_RESOURCE "")
-        if(MINGW OR MSVC)
-                set(MAIN_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/res/${target}.rc")
-        endif()
+if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+	message(FATAL_ERROR "This project can't build. Please build with it: https://github.com/boldowa/smw-utils")
+endif("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 
-        add_executable(${target} ${MAIN_FILE} ${SRC_FILES} ${MAIN_RESOURCE})
-        if(UNIX)
-                target_link_libraries(${target} "dl" "asar")
-        endif(UNIX)
+project(unko C CXX)
 
-        set(COMPILER_H ${PROJECT_BINARY_DIR}/compiler.h)
-        set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/build")
-        if(UNIX OR MINGW)
-        execute_process(
-                COMMAND sh "${BUILD_DIR}/ccname.sh" "${CMAKE_C_COMPILER}"
-                OUTPUT_VARIABLE C_COMPILER
-                )
-        add_custom_target(compiler_h
-                COMMAND echo " \#pragma once" > "${COMPILER_H}"
-                COMMAND echo " \#define C_COMPILER \\\"${C_COMPILER}\\(${CMAKE_C_COMPILER_ID}\\)\\\"" >> "${COMPILER_H}"
-                COMMAND echo " \#define C_COMPILER_VER \\\"${CMAKE_C_COMPILER_VERSION}\\\"" >> "${COMPILER_H}"
-                )
-        elseif(MSVC)
-        execute_process(
-                COMMAND "${BUILD_DIR}/ccname.bat" "${CMAKE_C_COMPILER}"
-                OUTPUT_VARIABLE C_COMPILER
-                )
-        add_custom_target(compiler_h
-                COMMAND echo \#pragma once > "${COMPILER_H}"
-                COMMAND echo " \#define C_COMPILER \"${C_COMPILER}\(${CMAKE_C_COMPILER_ID}\)\"" >> "${COMPILER_H}"
-                COMMAND echo " \#define C_COMPILER_VER \"${CMAKE_C_COMPILER_VERSION}\"" >> "${COMPILER_H}"
-                )
-        endif()
-        add_dependencies(${target} compiler_h)
+GenerateCompilerH(UNKO include/compiler.h)
 
-        # bolib
-        set(BOLR "${CMAKE_CURRENT_SOURCE_DIR}/bolib/include")
-        target_include_directories(${target} PRIVATE
-                ${PROJECT_BINARY_DIR}
-                ${_INC}
-                ${MAIN_INC}
-                ${C_INC_COMMON}
-                ${C_INC_ASAR}
-                ${BOLR}
-                ${BOLR}/common
-                ${BOLR}/file
-                )
-	target_link_libraries(${target} bolib)
-endmacro(Make)
+#execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/include/common)
+#if("Windows" STREQUAL "${CMAKE_SYSTEM_NAME}")
+#	add_custom_target(strres
+#		SOURCES "${PROJECT_BINARY_DIR}/include/common/strres_jp.h")
+#	add_custom_command(OUTPUT "include/common/strres_jp.h"
+#		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+#		COMMAND iconv -c -f utf-8 -t cp932 -o "include/common/strres_jp.h" "${PROJECT_SOURCE_DIR}/include/common/strres_jp.h.in")
+#else("Windows" STREQUAL "${CMAKE_SYSTEM_NAME}")
+#	configure_file("${PROJECT_SOURCE_DIR}/include/common/strres_jp.h.in" "include/common/strres_jp.h" COPYONLY)
+#endif("Windows" STREQUAL "${CMAKE_SYSTEM_NAME}")
 
-### option putout macro
-macro(putopt opt)
-	message("${opt} = ${${opt}}")
-endmacro(putopt)
+option(UNKO_EXECUTE_TEST "Execute test suite" ON)
+option(UNKO_COVERAGE "Check code coverage" ON)
+set(UNKO_COVERAGE_EXECUTE FALSE)
 
-### add common defines
-macro(add_common_define target def)
-	set(${target} "${${target}} ${DEFINE_PREFIX}${def}")
-endmacro(add_common_define)
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(UNKO_EXECUTE_TEST OFF)
+endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(UNKO_COVERAGE AND UNKO_EXECUTE_TEST)
+	find_program(GCOV gcov)
+	if(NOT GCOV)
+		message(WARNING "-- gcov not found...")
+		set(UNKO_COVERAGE OFF)
+	else(NOT GCOV)
+		message(STATUS "gcov found: ${GCOV}")
+	endif(NOT GCOV)
+endif(UNKO_COVERAGE AND UNKO_EXECUTE_TEST)
 
-### specify build type
-set(CMAKE_BUILD_TYPE "Release")
+include_directories(
+	"${PROJECT_BINARY_DIR}/include"
+	"${CMAKE_BINARY_DIR}/bolib2/"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../cpputest/include"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../bolib2/include"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../jansson/include"
+	)
 
-### Visual Studio Solution Name
-project(unko)
+link_directories(
+        "${PROJECT_BINARY_DIR}"
+)
 
-###### specify C and C++ compile option
-### soecify unix compile option
-if(UNIX OR MINGW)
-	## define prefix(gcc)
-	set(DEFINE_PREFIX "-D")
+add_subdirectory(src)
 
-	## set C Release compile flags
-        set(CMAKE_C_FLAGS_RELEASE "-Wall -ansi -Wconversion -O2 -ffunction-sections -fdata-sections")
+if(UNKO_EXECUTE_TEST)
+	add_subdirectory(tests)
+	#add_custom_target(prepare_test
+	#	COMMAND ${CMAKE_COMMAND} -E echo "-- Prepareing test data..."
+	#	COMMAND ${CMAKE_COMMAND} -E echo "   copy_directory \"${PROJECT_SOURCE_DIR}/testdata\" \"${CMAKE_BINARY_DIR}/testdata\""
+	#	COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/testdata" "${CMAKE_BINARY_DIR}/testdata"
+	#	COMMAND ${CMAKE_COMMAND} -E echo "   remove_directory \"${CMAKE_BINARY_DIR}/testdata/@out\""
+	#	COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/testdata/@out"
+	#	COMMAND ${CMAKE_COMMAND} -E echo "   make_directory \"${CMAKE_BINARY_DIR}/testdata/@out\""
+	#	COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/testdata/@out"
+	#	)
+	#add_custom_target(check ALL
+	#	COMMAND ${CMAKE_COMMAND} -E echo "+++++ Test starts... +++++"
+	#	COMMAND ${CMAKE_COMMAND} -E echo "-- Executes bolib2_test ..."
+	#	COMMAND $<TARGET_FILE:bolib2_test> -c
+	#	COMMAND ${CMAKE_COMMAND} -E echo "-- Removing test data..."
+	#	COMMAND ${CMAKE_COMMAND} -E echo "   remove_directory \"${CMAKE_BINARY_DIR}/testdata/@out\""
+	#	COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/testdata/@out"
+	#	COMMAND ${CMAKE_COMMAND} -E echo "+++++ done. +++++"
+	#	)
+	enable_testing()
+	add_test(NAME unko COMMAND unko_test)
+	#add_dependencies(check prepare_test)
+	#add_dependencies(check bolib2_test)
+	#add_dependencies(bolib2_exe check)
 
-	## set C Debug compile option
-	set(CMAKE_C_FLAGS_DEBUG "-Wall -ansi -Wconversion -Werror -O0 -g")
+	find_program(GDB gdb)
+	if(NOT GDB)
+		message(WARNING "gdb isn't found.")
+	else(NOT GDB)
+		# debug
+		#add_custom_target(debug
+		#	COMMAND ${CMAKE_COMMAND} -E echo "-- Executes gdb..."
+		#	COMMAND gdb $<TARGET_FILE:bolib2_test>
+		#	)
+		#add_dependencies(debug prepare_test)
+		#add_dependencies(debug bolib2_test)
+	endif(NOT GDB)
 
-	## set linker link flag
-	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s -Wl,--gc-sections")
-	set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "-T")
-endif()
-
-if(MSVC)
-	## define prefix(gcc)
-	set(DEFINE_PREFIX "/D")
-
-	# todo : define it
-endif(MSVC)
-
-### add common define
-if(UNIX)
-        add_common_define(CMAKE_C_FLAGS_DEBUG UNIX)
-        add_common_define(CMAKE_C_FLAGS_RELEASE UNIX)
-endif(UNIX)
-if(MINGW OR MSVC)
-        add_common_define(CMAKE_C_FLAGS_DEBUG WIN32)
-        add_common_define(CMAKE_C_FLAGS_RELEASE WIN32)
-endif()
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-	add_common_define(CMAKE_C_FLAGS_DEBUG DEBUG)
-else()
-	add_common_define(CMAKE_C_FLAGS_RELEASE RELEASE)
-	add_common_define(CMAKE_C_FLAGS_RELEASE NDEBUG)
-endif()
-
-### set C++ option
-set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
-set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
-
-###### specify C++ command option
-if(UNIX OR MINGW)
-	## no exception
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-rtti -fno-exceptions")
-endif()
-
-if(MSVC)
-	# todo : define it
-endif(MSVC)
+	# coverage
+	if(UNKO_COVERAGE_EXECUTE)
+		#add_custom_target(coverage ALL
+		#	COMMAND rm -rf gcov
+		#	COMMAND mkdir gcov
+		#	#COMMAND find src/CMakeFiles/bolib2.dir/ -type f -name "*.gcno" -print0 | xargs -0 env LANG=C gcov
+		#	COMMAND mv *.gcov gcov
+		#	)
+		#add_dependencies(coverage check)
+		#add_dependencies(bolib2_exe coverage)
+	endif(UNKO_COVERAGE_EXECUTE)
+endif(UNKO_EXECUTE_TEST)
 
 
-### visual studio directory config
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "unko")
+set(CMAKE_BUILD_FLAGS "${CMAKE_C_FLAGS}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_flags(CMAKE_BUILD_FLAGS ${CMAKE_C_FLAGS_DEBUG})
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+	add_flags(CMAKE_BUILD_FLAGS ${CMAKE_C_FLAGS_RELEASE})
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-add_subdirectory(bolib)
 
-### add common library
-set(C_INC_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
-set(C_INC_ASAR "${CMAKE_CURRENT_SOURCE_DIR}/include/asar")
-
-### build
-link_directories(${CMAKE_CURRENT_BINARY_DIR} "./")
-Make(unko)
-
-if(UNIX)
-	set(CUR "${CMAKE_CURRENT_SOURCE_DIR}")
-	set(TGTPATH "${CMAKE_CURRENT_SOURCE_DIR}/release")
-	add_custom_target(r cp unko ${TGTPATH}/
-		COMMAND cp ${CUR}/doc/readme.txt ${TGTPATH}/
-		COMMAND cp ${CUR}/doc/readme_jp.txt ${TGTPATH}/
-		COMMAND cp ${CUR}/doc/LICENSE ${TGTPATH}/
-		COMMAND cp ${CUR}/list.txt ${TGTPATH}/
-		COMMAND rm -rf ${TGTPATH}/asar_licenses
-		COMMAND cp -r ${CUR}/doc/asar_licenses ${TGTPATH}/
-
-		COMMAND rm -rf ${TGTPATH}/sources
-		COMMAND mkdir ${TGTPATH}/sources
-		COMMAND cp -r ${CUR}/src ${TGTPATH}/sources/
-		COMMAND cp -r ${CUR}/include ${TGTPATH}/sources/
-		COMMAND cp -r ${CUR}/CMakeLists.txt ${TGTPATH}/sources/
-		COMMAND cp -r ${CUR}/toolchain ${TGTPATH}/sources/
-		COMMAND rm -rf ${TGTPATH}/sources/src/util
-		COMMAND rm -rf ${TGTPATH}/sources/include/util
-
-		COMMAND mkdir ${TGTPATH}/sources/bolib
-		COMMAND cp -r ${CUR}/bolib/src ${TGTPATH}/sources/bolib/
-		COMMAND cp -r ${CUR}/bolib/include ${TGTPATH}/sources/bolib/
-		COMMAND cp -r ${CUR}/bolib/CMakeLists.txt ${TGTPATH}/sources/bolib/
-		COMMAND cp -r ${CUR}/bolib/toolchain ${TGTPATH}/sources/bolib/
-		COMMAND rm -rf ${TGTPATH}/sources/bolib/src/util
-		COMMAND rm -rf ${TGTPATH}/sources/bolib/include/util
-
-		COMMAND mkdir ${TGTPATH}/sources/build
-		COMMAND cp ${CUR}/build/build.sh ${TGTPATH}/sources/build/
-		COMMAND cp ${CUR}/build/build_mingw.sh ${TGTPATH}/sources/build/
-		COMMAND cp ${CUR}/build/ccname.sh ${TGTPATH}/sources/build/
-		COMMAND cp ${CUR}/build/ccname.bat ${TGTPATH}/sources/build/
-
-		COMMAND rm -rf ${TGTPATH}/sys
-		COMMAND cp -r ${CUR}/sys ${TGTPATH}/
-		COMMAND rm -rf ${TGTPATH}/libraries
-		COMMAND cp -r ${CUR}/libraries ${TGTPATH}/
-		COMMAND rm -rf ${TGTPATH}/objects
-		COMMAND cp -r ${CUR}/objects ${TGTPATH}/
-		COMMAND rm -rf ${TGTPATH}/option
-		COMMAND cp -r ${CUR}/option ${TGTPATH}/
-		)
-endif(UNIX)

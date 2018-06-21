@@ -3,7 +3,8 @@
  */
 #pragma once
 
-#include "types.h"
+#include <bolib.h>
+#include <stdio.h>
 
 /**
  * It requires this var.

@@ -1,9 +1,9 @@
 /**
- * SearchPathTest.cpp
+ * @file SearchPathTest.cpp
  */
+#include <bolib.h>
 extern "C"
 {
-#include "common/types.h"
 #include "unko/SearchPath.h"
 }
 

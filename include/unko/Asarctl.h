@@ -31,13 +31,5 @@ extern RomMapStruct rommap;
 
 void putasarerr();
 void DeleteLabelDataStruct(void* data);
-
-#ifndef RomFile
-#  define _Asarctl_Temprorary_RomFileDefine
-   typedef struct _RomFile RomFile;
-#endif
-void getmapmode(RomFile*);
-#ifdef _Asarctl_Temprorary_RomFileDefine
-#  undef RomFile
-#endif
+void getmapmode(struct _RomFile*);
 

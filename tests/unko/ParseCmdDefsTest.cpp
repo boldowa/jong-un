@@ -1,12 +1,10 @@
 /**
- * ParseCmdDefsTest.cpp
+ * @file ParseCmdDefsTest.cpp
  */
+#include <bolib.h>
+typedef struct _RomFile RomFile;
 extern "C"
 {
-#include "common/types.h"
-#include "common/Str.h"
-#include "common/List.h"
-typedef struct _RomFile RomFile;
 #include "unko/Asarctl.h"
 #include "unko/ParseCmdDefs.h"
 }

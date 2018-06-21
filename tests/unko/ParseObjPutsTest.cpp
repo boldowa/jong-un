@@ -1,11 +1,10 @@
 /**
- * ParseObjPutsTest.cpp
+ * @file ParseObjPutsTest.cpp
  */
+#include <bolib.h>
+#include <string.h>
 extern "C"
 {
-#include "common/types.h"
-#include <string.h>
-#include "common/Str.h"
 #include "unko/ParseObjPuts.h"
 }
 

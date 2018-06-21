@@ -1,9 +1,11 @@
-#include "types.h"
+/**
+ * @file SearchPath.c
+ */
+#include <bolib.h>
 #include <stdlib.h>
-#include "Str.h"
-#include "puts.h"
-#include "Enviroment.h"
-#include "SearchPath.h"
+#include "common/puts.h"
+#include "common/Environment.h"
+#include "unko/SearchPath.h"
 
 void DestroySearchPath(char** paths)
 {
@@ -21,9 +23,9 @@ bool ConstructSearchPath(char** paths, const char* suffix)
 
 	if(NULL == paths || NULL == suffix) return false;
 
-	for(i=0; NULL != Enviroment.SearchPath[i]; i++)
+	for(i=0; NULL != Environment.SearchPath[i]; i++)
 	{
-		p = Str_concat(Enviroment.SearchPath[i], suffix);
+		p = Str_concat(Environment.SearchPath[i], suffix);
 		if(NULL == p)
 		{
 			putfatal("%s: memory error.", __func__);

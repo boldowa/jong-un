@@ -1,3 +1,6 @@
+/**
+ * @file AllTests.cpp
+ */
 
 #include "CppUTest/CommandLineTestRunner.h"
 

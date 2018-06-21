@@ -1,6 +1,9 @@
+/**
+ * @file AsardllTest.cpp
+ */
 extern "C"
 {
-#include "asardll.h"
+#include "asar/asardll.h"
 }
 
 #include "CppUTest/TestHarness.h"

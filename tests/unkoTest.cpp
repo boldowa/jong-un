@@ -1,13 +1,13 @@
 /**
- * unkoTest.cpp
+ * @file unkoTest.cpp
  */
-extern "C"
-{
-#include "common/types.h"
 #include <stdio.h>
 #include <assert.h>
-#include "file/File.h"
-#include "file/RomFile.h"
+#include <string.h>
+#include <bolib.h>
+#include <bolib/file/RomFile.h>
+extern "C"
+{
 #include "common/puts.h"
 int Unko(int, char**);
 }

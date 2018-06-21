@@ -1,13 +1,12 @@
 /**
  * Option.c
  */
-#include "types.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "Str.h"
-#include "puts.h"
-#include "Option.h"
+#include <bolib.h>
+#include "common/puts.h"
+#include "common/Option.h"
 
 typedef bool (*SetOptionFunc_t)(void* param, const char* arg);
 

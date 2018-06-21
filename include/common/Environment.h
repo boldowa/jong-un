@@ -3,16 +3,16 @@
 #define TempAsmName	"temp.asm"
 #define SearchPathNums	4
 
-typedef struct EnviromentStruct {
+typedef struct EnvironmentStruct {
 	const char  CurDir[MAX_PATH];
 	const char  ExeDir[MAX_PATH];
 	const char* RomDir;
 	const char* SearchPath[SearchPathNums];
-} EnviromentStruct;
+} EnvironmentStruct;
 
-extern EnviromentStruct Enviroment;
+extern EnvironmentStruct Environment;
 
-void SetSystemEnviroment();
+void SetSystemEnvironment();
 void SetSearchPath();
 
 

@@ -1,11 +1,12 @@
 /**
- * Asarctl.h
+ * @file Asarctl.h
  */
-#include "common/types.h"
+#include <string.h>
+#include <stdlib.h>
+#include <bolib.h>
 #include <assert.h>
 #include "common/puts.h"
-#include "file/File.h"
-#include "file/RomFile.h"
+#include <bolib/file/RomFile.h>
 #include "asar/asardll.h"
 #include "unko/Asarctl.h"
 
@@ -50,7 +51,7 @@ void getmapmode(RomFile* rom)
 	memset((char*)rommap.name, '\0', sizeof(char)*10);
 	rommap.val = MT_Unknown;
 
-	putdebug("Rom: %s (%dK bytes)", rom->super.path_get(&rom->super), (int)(rom->size_get(rom)/1024));
+	putdebug("Rom: %s (%dK bytes)", rom->path_get(rom), (int)(rom->size_get(rom)/1024));
 	putdebug("RomType: %02x", rom->type_get(rom));
 	putdebug("RomMap: %02x", rom->mapmode_get(rom));
 

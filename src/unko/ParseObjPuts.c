@@ -1,14 +1,13 @@
 /**
- * ParseObjPuts.c
+ * @file ParseObjPuts.c
  */
-
-#include "common/types.h"
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <bolib.h>
 #include "common/puts.h"
-#include "common/Str.h"
 #include "common/Funex.h"
-#include "common/List.h"
 typedef struct _RomFile RomFile;
 #include "unko/Asarctl.h"
 #include "unko/ParseObjPuts.h"

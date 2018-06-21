@@ -2,7 +2,7 @@
 //  unko.rc
 //----------------------------------------------------------
 
-#include "version.h"
+#include "unko/version.h"
 #include <windows.h>
 
 /**
