@@ -1,6 +1,11 @@
 ;-------------------------------------------------
 ; Invert Green Block
 ;-------------------------------------------------
+
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../../libraries/sa1def.asm
+
 main:
 	ldx.b	#$00
 
@@ -9,7 +14,7 @@ main:
 print "export InvSwitch = $", pc
 
 	ldy.b	#00
-	lda.w	$1f27,x
+	lda.w	$1f27|!Base2,x
 	bne	+
 	iny
 +	tya

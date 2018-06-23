@@ -1,7 +1,12 @@
 ;-------------------------------------------------
 ; Cement gate
 ;-------------------------------------------------
-!ConditionRAM	= $0dbe
+
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../libraries/sa1def.asm
+
+!ConditionRAM	= $0dbe|!Base1
 
 main:
 	lda	!ConditionRAM

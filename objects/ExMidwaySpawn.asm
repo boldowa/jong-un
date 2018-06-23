@@ -1,9 +1,14 @@
 ;-------------------------------------------------
 ; Extend Midway Spawn Point
 ;-------------------------------------------------
+
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../libraries/sa1def.asm
+
 main:	
-	ldx.w	$13bf
-	lda.w	$1ea2,x
+	ldx.w	$13bf|!Base2
+	lda.w	$1ea2|!Base2,x
 	and.b	#$40
 	beq	+
 
@@ -14,7 +19,7 @@ main:
 	asl			; |
 	asl			; |
 	sta.b	$94		;/
-	lda.w	$1928		;\  Set X high
+	lda.w	$1928|!Base2		;\  Set X high
 	sta.b	$95		;/
 	lda.b	$57		;\
 	and.b	$f0		; | Set Y low

@@ -12,8 +12,12 @@
 ;   * $58 is enabled in 2DObject only.
 ;-------------------------------------------------
 
-!DragonCoinCollects	= $1f2f
-!3upMoonObteinded	= $1fee
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../libraries/sa1def.asm
+
+!DragonCoinCollects	= $1f2f|!Base2
+!3upMoonObteinded	= $1fee|!Base2
 
 main:
 ;--------
@@ -75,7 +79,7 @@ isCollect3up:
 ;-----------------------------
 isLifeLastOne:
 	clc
-	lda.w	$0dbe
+	lda.w	$0dbe|!Base1
 	bne	+
 	sec
 +	rts
@@ -83,11 +87,11 @@ isLifeLastOne:
 ;-----------------------------
 isMidwayPassed:
 	clc
-	ldx.w	$13bf
-	lda.w	$1ea2,x
+	ldx.w	$13bf|!Base2
+	lda.w	$1ea2|!Base2,x
 	and.b	#$40
 	bne	+
-	lda.w	$13ce
+	lda.w	$13ce|!Base2
 	beq	++
 +	sec
 ++	rts
@@ -95,11 +99,11 @@ isMidwayPassed:
 ;-----------------------------
 isMidwayPassedInv:
 	sec
-	ldx.w	$13bf
-	lda.w	$1ea2,x
+	ldx.w	$13bf|!Base2
+	lda.w	$1ea2|!Base2,x
 	and.b	#$40
 	bne	+
-	lda.w	$13ce
+	lda.w	$13ce|!Base2
 	beq	++
 +	clc
 ++	rts

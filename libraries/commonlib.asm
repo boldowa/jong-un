@@ -2,8 +2,12 @@
 ; common libraries
 ;-------------------------------------------------
 
-!ItemIndex	= $13be
-!TransLevNum	= $13bf
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc libraries/sa1def.asm
+
+!ItemIndex	= $13be|!Base2
+!TransLevNum	= $13bf|!Base2
 
 ; 16x tile store library -------------------------
 Store0to6E:
@@ -40,8 +44,8 @@ ReloadPointer:
 	lda.b	$05
 	sta.b	$6c
 	sta.b	$6f
-	lda.w	$1928
-	sta.w	$1ba1
+	lda.w	$1928|!Base2
+	sta.w	$1ba1|!Base2
 	rtl
 
 SetTileXAndMoveR:
@@ -63,7 +67,7 @@ RightSet:
 	adc.b	#$01
 	sta.b	$6c
 	sta.b	$6f
-	inc	$1ba1
+	inc	$1ba1|!Base2
 	lda.b	$57
 	and.b	#$f0
 	tay

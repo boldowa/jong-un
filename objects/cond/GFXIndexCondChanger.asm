@@ -12,16 +12,20 @@
 ;                           ... ssss = Sprite
 ;-------------------------------------------------
 
+; RPG Hacker: This should really be an automatic
+; include, but UNKO doesn't support this yet
+incsrc ../../libraries/sa1def.asm
+
 GFXIndexCondChanger:
 	jsr	GFXIndexCondChk
 	bcc	+
 	lda.b	$58		;\
 	and.b	#$0f		; | Set sprite tile set
-	sta.w	$192b		;/
+	sta.w	$192b|!Base2		;/
 	lda.b	$58		;\
 	lsr	#4		; | Set FG/BG tile set
-	sta.w	$1931		; |
-	sta.w	$1932		;/
+	sta.w	$1931|!Base2		; |
+	sta.w	$1932|!Base2		;/
 	phk			;\
 	per	$0006		; | Call graphic load routine
 	pea	$8124		; |
