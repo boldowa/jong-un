@@ -32,8 +32,7 @@ file(GLOB_RECURSE TESTSOURCES
 add_executable(unko_test ${TESTSOURCES})
 set_target_properties(unko_test PROPERTIES
 	COMPILE_FLAGS "${UNKO_TEST_FLAGS}"
-	RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}"
-	)
+	RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 target_link_libraries(unko_test unko ${CPPUTEST_LIB})
 
 #if(NOT MSVC)

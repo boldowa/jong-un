@@ -37,10 +37,7 @@ if(MINGW OR MSVC)
 endif(MINGW OR MSVC)
 add_library(unko ${CUI_Sources} ${CUI_Resource})
 #add_dependencies(unko strres)
-set_target_properties(unko PROPERTIES
-	COMPILE_FLAGS "${UNKO_FLAGS}"
-	RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}"
-	)
+set_target_properties(unko PROPERTIES COMPILE_FLAGS "${UNKO_FLAGS}")
 if(UNIX OR APPLE)
 	target_link_libraries(unko dl asar)
 	if(UNKO_EXECUTE_TEST)
@@ -56,6 +53,9 @@ endif(MSVC)
 target_link_libraries(unko bolib2)
 
 add_executable(unko_exe main.c)
+set_target_properties(unko_exe PROPERTIES
+	OUTPUT_NAME unko
+	COMPILE_FLAGS "${UNKO_FLAGS}"
+	RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 target_link_libraries(unko_exe unko)
-set_target_properties(unko_exe PROPERTIES OUTPUT_NAME unko)
 
